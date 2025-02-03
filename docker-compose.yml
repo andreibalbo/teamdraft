@@ -6,7 +6,7 @@ services:
     container_name: web
     command: sleep infinity
     volumes:
-      - .:/app
+      - .:/app/teamdraft
     ports:
       - "3000:3000"
     environment:
