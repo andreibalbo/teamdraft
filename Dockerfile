@@ -18,11 +18,10 @@ RUN apt-get update -qq && \
     git
 
 # Copy Gemfile and install dependencies
-COPY Gemfile* ./
-RUN bundle install
+# COPY Gemfile* ./
+# RUN bundle install
 
 # Copy the rest of the application code
 COPY . .
 
-# Set the default command
-CMD ["sleep", "infinity"]
+# CMD ["sleep", "infinity"]

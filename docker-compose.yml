@@ -3,12 +3,14 @@ version: '3.8'
 services:
   web:
     build: .
+    container_name: web
+    command: sleep infinity
     volumes:
       - .:/app
     ports:
       - "3000:3000"
     environment:
-      - DATABASE_URL=postgres://postgres:password@db:5432/myapp_development
+      - DATABASE_URL=postgres://postgres:password@db:5432/td_dev
     depends_on:
       - db
 
@@ -18,7 +20,7 @@ services:
       - postgres_data:/var/lib/postgresql/data
     environment:
       - POSTGRES_PASSWORD=password
-      - POSTGRES_DB=myapp_development
+      - POSTGRES_DB=td_dev
     ports:
       - "5432:5432"
 
