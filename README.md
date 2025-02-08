@@ -4,8 +4,8 @@ TeamDraft is a web application that allows you to create and draft your soccer m
 
 It consists of two applications:
 
-- **TeamDraft APP**: Rails Web application to create and draft your soccer matches.
-- **TeamDraft ENGINE**: Python application to handle draft logic.
+- [**TeamDraft APP**](./teamdraft_app): Rails Web application to create and draft your soccer matches.
+- [**TeamDraft ENGINE**](./teamdraft_engine): Python application to handle draft logic.
 
 ### Setup 
 
