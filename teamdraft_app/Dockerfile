@@ -21,13 +21,15 @@ RUN apt-get update -qq && \
 COPY Gemfile* ./
 RUN bundle install
 
-# Copy the rest of the application code\
-
-# Change ownership of /app to nobody:nobody
+# Copy the rest of the application code
 COPY . /app
+
+# Grant permissions to avoid issues on WSL
 RUN useradd -ms /bin/bash admin
 RUN chown -R admin:admin /app
+RUN chown -R admin:admin /usr/local
 RUN chmod 755 /app
+RUN chmod 755 /usr/local
 USER admin
 
-# CMD ["sleep", "infinity"]
+CMD ["bin/rails", "s", "-b", "0.0.0.0"]
