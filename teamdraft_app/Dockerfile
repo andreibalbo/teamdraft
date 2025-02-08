@@ -18,10 +18,16 @@ RUN apt-get update -qq && \
     git
 
 # Copy Gemfile and install dependencies
-# COPY Gemfile* ./
-# RUN bundle install
+COPY Gemfile* ./
+RUN bundle install
 
-# Copy the rest of the application code
-COPY . .
+# Copy the rest of the application code\
+
+# Change ownership of /app to nobody:nobody
+COPY . /app
+RUN useradd -ms /bin/bash admin
+RUN chown -R admin:admin /app
+RUN chmod 755 /app
+USER admin
 
 # CMD ["sleep", "infinity"]
