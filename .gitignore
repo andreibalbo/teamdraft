@@ -1,0 +1,6 @@
+# VSCode settings
+.vscode/*
+settings.json
+
+# Version manager files
+.tool-versions
