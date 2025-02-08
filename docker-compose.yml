@@ -1,12 +1,14 @@
 version: '3.8'
 
 services:
-  web:
-    build: .
-    container_name: web
+  app:
+    build:
+      context: ./teamdraft_app
+      dockerfile: Dockerfile
+    container_name: app
     command: sleep infinity
     volumes:
-      - .:/app/teamdraft
+      - ./teamdraft_app:/app
     ports:
       - "3000:3000"
     environment:
@@ -14,6 +16,14 @@ services:
     depends_on:
       - db
 
+  # engine:
+  #   build:
+  #     context: ./teamdraft_engine
+  #     dockerfile: Dockerfile
+  #   container_name: engine
+  #   command: sleep infinity
+  #   volumes:
+  #     - ./teamdraft_engine:/app
   db:
     image: postgres:15
     volumes:
