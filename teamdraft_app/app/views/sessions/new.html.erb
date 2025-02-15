@@ -1,5 +1,5 @@
 <h1>Log in</h1>
-<%= form_with(url: sessions_path, local: true) do |f| %>
+<%= form_with(url: login_path, local: true) do |f| %>
   <div class="field">
     <%= f.label :email %>
     <%= f.email_field :email, autofocus: true %>
