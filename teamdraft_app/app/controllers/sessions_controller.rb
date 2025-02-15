@@ -3,10 +3,10 @@ class SessionsController < ApplicationController
   end
 
   def create
-    user = User.find_by(email: params[:email])
+    result = ::UserService::Login.new(login_params).call
 
-    if user&.authenticate(params[:password])
-      session[:user_id] = user.id
+    if result[:success]
+      session[:user_id] = result[:user].id
       redirect_to root_url, notice: "Logged in successfully!"
     else
       flash.now[:alert] = "Invalid email or password"
@@ -17,5 +17,11 @@ class SessionsController < ApplicationController
   def destroy
     session[:user_id] = nil
     redirect_to root_url, notice: "Logged out successfully!", status: :see_other
+  end
+
+private
+
+  def login_params
+    params.permit(:email, :password)
   end
 end

@@ -4,20 +4,20 @@ class UsersController < ApplicationController
   end
 
   def create
-    @user = User.new(user_params)
-    puts "User params: #{@user.inspect}"
+    result = ::UserService::Create.new(user_params).call
 
-    if @user.save
-      session[:user_id] = @user.id
+    if result[:success]
+      session[:user_id] = result[:user].id
       redirect_to root_url, notice: "Account created successfully!"
     else
+      @user = result[:user]
       render :new, status: :unprocessable_entity
     end
   end
 
-  private
+private
 
-    def user_params
-      params.require(:user).permit(:email, :password, :password_confirmation)
-    end
+  def user_params
+    params.require(:user).permit(:email, :password, :password_confirmation)
+  end
 end
