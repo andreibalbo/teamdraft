@@ -1,7 +1,7 @@
 FactoryBot.define do
   factory :user do
-    email { "MyString" }
-    password_hash { "MyString" }
-    password_salt { "MyString" }
+    sequence(:email) { |n| "user#{n}@example.com" }
+    password { 'password123' }
+    # Add other required attributes here
   end
 end
