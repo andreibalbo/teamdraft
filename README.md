@@ -13,7 +13,7 @@ It consists of two applications:
 docker-compose up -d
 docker-compose exec -it app bash
 rails db:setup
-rails s
+bin/dev
 ```
 
 ### Running tests
