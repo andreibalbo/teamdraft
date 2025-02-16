@@ -10,7 +10,7 @@ Rails.application.routes.draw do
   # get "service-worker" => "rails/pwa#service_worker", as: :pwa_service_worker
 
   # Authentication routes
-  get "/login" => "sessions#new"
+  get "/login" => "sessions#new", as: :login
   post "/login" => "sessions#create"
   delete "/logout" => "sessions#destroy", as: :logout
 

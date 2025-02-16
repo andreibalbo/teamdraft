@@ -11,7 +11,7 @@ private
 
   def authenticate_user!
     unless current_user
-      redirect_to log_in_path, alert: "Please log in to access this page"
+      redirect_to login_path, alert: "Please log in to access this page"
     end
   end
 end
