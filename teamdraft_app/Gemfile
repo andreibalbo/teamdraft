@@ -43,6 +43,13 @@ gem "thruster", require: false
 # Use PostgreSQL as the database for Active Record
 gem "pg", "~> 1.5", ">= 1.5.9"
 
+# Use Bcrypt for password hashing
+gem "bcrypt", "~> 3.1.7"
+
+# Use HTML Beautifier for Rails
+gem "htmlbeautifier"
+
+
 group :development, :test do
   # See https://guides.rubyonrails.org/debugging_rails_applications.html#debugging-with-the-debug-gem
   gem "debug", platforms: %i[ mri windows ], require: "debug/prelude"
