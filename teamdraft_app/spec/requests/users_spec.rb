@@ -4,12 +4,12 @@ RSpec.describe "Users", type: :request do
   describe "GET /users/new" do
     context "when not logged in" do
       it "returns http success" do
-        get "/users/new"
+        get "/signup"
         expect(response).to have_http_status(:success)
       end
 
       it "can render the form" do
-        get "/users/new"
+        get "/signup"
         expect(response.body).to include('form')
       end
     end
@@ -25,7 +25,7 @@ RSpec.describe "Users", type: :request do
       end
 
       it "redirects to root path" do
-        get "/users/new"
+        get "/signup"
         expect(response).to redirect_to(root_path)
       end
     end
