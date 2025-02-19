@@ -1,5 +1,6 @@
 class GroupsController < ApplicationController
   before_action :set_group, only: [ :show, :edit, :update, :destroy ]
+  rescue_from ActiveRecord::RecordNotFound, with: :group_not_found
 
   def index
     @groups = current_user.groups
@@ -20,6 +21,7 @@ class GroupsController < ApplicationController
     @group = Group.new(group_params)
 
     if @group.save
+      @group.memberships.create!(user: current_user, role: :admin)
       redirect_to @group, notice: "Group was successfully created."
     else
       render :new, status: :unprocessable_entity
@@ -42,10 +44,14 @@ class GroupsController < ApplicationController
 private
 
   def set_group
-    @group = Group.find(params[:id])
+    @group = current_user.groups.find(params[:id])
   end
 
   def group_params
     params.require(:group).permit(:name, :description, :category)
+  end
+
+  def group_not_found
+    redirect_to root_path, alert: "You don't have access to this group"
   end
 end
