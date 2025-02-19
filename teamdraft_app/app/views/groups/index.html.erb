@@ -1,0 +1,26 @@
+<h1>Groups</h1>
+<%= link_to 'Create New Group', new_group_path, class: "button" %>
+<table>
+  <thead>
+    <tr>
+      <th>Name</th>
+      <th>Category</th>
+      <th>Actions</th>
+    </tr>
+  </thead>
+  <tbody>
+    <% @groups.each do |group| %>
+      <tr>
+        <td><%= group.name %></td>
+        <td><%= group.category %></td>
+        <td>
+          <%= link_to 'Show', group %>
+          <%= link_to 'Edit', edit_group_path(group) %>
+          <%= link_to 'Delete', group, 
+              data: { turbo_method: :delete, turbo_confirm: 'Are you sure?' } %>
+        </td>
+      </tr>
+    <% end %>
+  </tbody>
+</table>
+ 

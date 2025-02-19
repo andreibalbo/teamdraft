@@ -1,5 +1,5 @@
 class GroupsController < ApplicationController
-  before_action :set_group, only: [ :show, :update, :destroy ]
+  before_action :set_group, only: [ :show, :edit, :update, :destroy ]
 
   def index
     @groups = Group.all
@@ -31,6 +31,13 @@ class GroupsController < ApplicationController
   def destroy
     @group.destroy
     head :no_content
+  end
+
+  def new
+    @group = Group.new
+  end
+
+  def edit
   end
 
 private

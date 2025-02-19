@@ -1,0 +1,16 @@
+<h1><%= @group.name %></h1>
+<div class="group-details">
+  <p>
+    <strong>Category:</strong>
+    <%= @group.category %>
+  </p>
+  <p>
+    <strong>Description:</strong>
+    <%= @group.description %>
+  </p>
+</div>
+<div class="actions">
+  <%= link_to 'Edit', edit_group_path(@group), class: "button" %> |
+  <%= link_to 'Back to Groups', groups_path, class: "button" %>
+</div>
+ 
