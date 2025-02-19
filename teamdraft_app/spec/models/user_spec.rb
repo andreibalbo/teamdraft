@@ -23,5 +23,27 @@ RSpec.describe User, type: :model do
     end
   end
 
+  describe 'associations' do
+    it { should have_many(:memberships).dependent(:destroy) }
+    it { should have_many(:groups).through(:memberships) }
+    it { should have_many(:managed_groups) }
+  end
+
+  describe 'managed_groups association' do
+    let(:user) { create(:user) }
+    let(:group1) { create(:group) }
+    let(:group2) { create(:group) }
+
+    before do
+      create(:membership, :admin, user: user, group: group1)
+      create(:membership, user: user, group: group2)
+    end
+
+    it "only includes groups where user is admin" do
+      expect(user.managed_groups).to include(group1)
+      expect(user.managed_groups).not_to include(group2)
+    end
+  end
+
   # Add other model validations/methods tests here
 end

@@ -1,6 +1,6 @@
 class GroupsController < ApplicationController
-  before_action :set_group, only: [ :show, :edit, :update, :destroy ]
-  before_action :set_managed_group, only: [ :edit, :update ]
+  before_action :set_group, only: [ :show ]
+  before_action :set_managed_group, only: [ :edit, :update, :destroy ]
   rescue_from ActiveRecord::RecordNotFound, with: :group_not_found
 
   def index
