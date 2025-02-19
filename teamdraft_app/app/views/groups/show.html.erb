@@ -9,8 +9,26 @@
     <%= @group.description %>
   </p>
 </div>
+<div class="members-list">
+  <h2>Members</h2>
+  <table>
+    <thead>
+      <tr>
+        <th>Email</th>
+        <th>Role</th>
+      </tr>
+    </thead>
+    <tbody>
+      <% @memberships.each do |membership| %>
+        <tr>
+          <td><%= membership.user.email %></td>
+          <td><%= membership.role %></td>
+        </tr>
+      <% end %>
+    </tbody>
+  </table>
+</div>
 <div class="actions">
   <%= link_to 'Edit', edit_group_path(@group), class: "button" %> |
   <%= link_to 'Back to Groups', groups_path, class: "button" %>
 </div>
- 
