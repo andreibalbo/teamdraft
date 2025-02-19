@@ -9,15 +9,32 @@ It consists of two applications:
 
 ### Setup 
 
+Setup the container in sleep mode:
 ```bash
 docker-compose up -d
+```
+
+Enter the container:
+```bash
 docker-compose exec -it app bash
+```
+
+Setup the database:
+```bash
 rails db:setup
+```
+
+Run the application in dev mode:
+```bash
 bin/dev
 ```
 
 ### Running tests
 
 ```bash
-bundle exec rspec
+rspec
 ```
+
+### Backlog
+
+https://trello.com/b/TT2WWhqZ/teamdraft
