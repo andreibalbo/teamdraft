@@ -35,3 +35,6 @@
 
 # Ignore spec examples
 /spec/examples.txt
+
+# Ignore simplecov coverage
+/coverage
