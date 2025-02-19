@@ -1,5 +1,6 @@
 class GroupsController < ApplicationController
   before_action :set_group, only: [ :show, :edit, :update, :destroy ]
+  before_action :set_managed_group, only: [ :edit, :update ]
   rescue_from ActiveRecord::RecordNotFound, with: :group_not_found
 
   def index
@@ -45,6 +46,10 @@ private
 
   def set_group
     @group = current_user.groups.find(params[:id])
+  end
+
+  def set_managed_group
+    @group = current_user.managed_groups.find(params[:id])
   end
 
   def group_params
