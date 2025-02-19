@@ -3,34 +3,51 @@ class GroupsController < ApplicationController
 
   def index
     @groups = Group.all
-    render json: @groups
+    respond_to do |format|
+      format.html
+      format.json { render json: @groups }
+    end
   end
 
   def show
-    render json: @group
+    respond_to do |format|
+      format.html
+      format.json { render json: @group }
+    end
   end
 
   def create
     @group = Group.new(group_params)
 
-    if @group.save
-      render json: @group, status: :created
-    else
-      render json: @group.errors, status: :unprocessable_entity
+    respond_to do |format|
+      if @group.save
+        format.html { redirect_to @group, notice: "Group was successfully created." }
+        format.json { render json: @group, status: :created }
+      else
+        format.html { render :new, status: :unprocessable_entity }
+        format.json { render json: @group.errors, status: :unprocessable_entity }
+      end
     end
   end
 
   def update
-    if @group.update(group_params)
-      render json: @group
-    else
-      render json: @group.errors, status: :unprocessable_entity
+    respond_to do |format|
+      if @group.update(group_params)
+        format.html { redirect_to @group, notice: "Group was successfully updated." }
+        format.json { render json: @group }
+      else
+        format.html { render :edit, status: :unprocessable_entity }
+        format.json { render json: @group.errors, status: :unprocessable_entity }
+      end
     end
   end
 
   def destroy
     @group.destroy
-    head :no_content
+    respond_to do |format|
+      format.html { redirect_to groups_url, notice: "Group was successfully deleted." }
+      format.json { head :no_content }
+    end
   end
 
   def new
