@@ -22,6 +22,22 @@ Dir[Rails.root.join('spec', 'support', '**', '*.rb')].sort.each { |f| require f 
 ActiveRecord::Migration.maintain_test_schema!
 
 RSpec.configure do |config|
+  # Clean the database before running tests
+  config.before(:suite) do
+    DatabaseCleaner.clean_with(:truncation)
+    DatabaseCleaner.strategy = :transaction
+  end
+
+  config.before(:each) do
+    DatabaseCleaner.start
+  end
+
+  config.after(:each) do
+    DatabaseCleaner.clean
+  end
+
+  # Automatically handle migrations
+  ActiveRecord::Migration.maintain_test_schema!
   # Replace the deprecated singular fixture_path with plural fixture_paths
   config.fixture_paths = [ Rails.root.join('spec/fixtures') ]
 
