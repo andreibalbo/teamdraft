@@ -60,8 +60,8 @@ RSpec.describe "Groups", type: :request do
       it "redirects to root with error" do
         group = create(:group)
         get group_path(group)
-        expect(response).to redirect_to(root_path)
-        expect(flash[:alert]).to eq("You don't have access to this group")
+        expect(response).to redirect_to(groups_path)
+        expect(flash[:alert]).to eq("You don't have permission to view this group")
       end
     end
   end
@@ -142,8 +142,8 @@ RSpec.describe "Groups", type: :request do
 
       it "redirects to root with error" do
         get edit_group_path(group)
-        expect(response).to redirect_to(root_path)
-        expect(flash[:alert]).to eq("You don't have access to this group")
+        expect(response).to redirect_to(groups_path)
+        expect(flash[:alert]).to eq("You don't have permission to edit this group")
       end
     end
   end
@@ -217,20 +217,20 @@ RSpec.describe "Groups", type: :request do
         }.not_to change(Group, :count)
       end
 
-      it "redirects to root with error" do
+      it "redirects to groups list path with error" do
         delete group_path(group)
-        expect(response).to redirect_to(root_path)
-        expect(flash[:alert]).to eq("You don't have access to this group")
+        expect(response).to redirect_to(groups_path)
+        expect(flash[:alert]).to eq("You don't have permission to delete this group")
       end
     end
 
     context "when user is not a member" do
       let(:group) { create(:group) }
 
-      it "redirects to root with error" do
+      it "redirects to groups list path with error" do
         delete group_path(group)
-        expect(response).to redirect_to(root_path)
-        expect(flash[:alert]).to eq("You don't have access to this group")
+        expect(response).to redirect_to(groups_path)
+        expect(flash[:alert]).to eq("You don't have permission to delete this group")
       end
     end
   end

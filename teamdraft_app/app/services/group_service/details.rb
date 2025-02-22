@@ -16,7 +16,7 @@ module GroupService
           memberships: memberships
         }
       else
-        { success: false, error: "Group not found" }
+        { success: false, error: "You don't have permission to view this group" }
       end
     end
   end
