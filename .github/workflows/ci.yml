@@ -14,11 +14,11 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Set up Ruby
-        working-directory: ./teamdraft_app
         uses: ruby/setup-ruby@v1
         with:
           ruby-version: .ruby-version
           bundler-cache: true
+          working-directory: ./teamdraft_app
 
       - name: Scan for common Rails security vulnerabilities using static analysis
         working-directory: ./teamdraft_app
@@ -33,10 +33,10 @@ jobs:
 
       - name: Set up Ruby
         uses: ruby/setup-ruby@v1
-        working-directory: ./teamdraft_app
         with:
           ruby-version: .ruby-version
           bundler-cache: true
+          working-directory: ./teamdraft_app
 
       - name: Scan for security vulnerabilities in JavaScript dependencies
         working-directory: ./teamdraft_app
@@ -50,10 +50,10 @@ jobs:
 
       - name: Set up Ruby
         uses: ruby/setup-ruby@v1
-        working-directory: ./teamdraft_app
         with:
           ruby-version: .ruby-version
           bundler-cache: true
+          working-directory: ./teamdraft_app
 
       - name: Lint code for consistent style
         working-directory: ./teamdraft_app
@@ -61,6 +61,23 @@ jobs:
 
   test:
     runs-on: ubuntu-latest
+
+    # Add PostgreSQL service
+    services:
+      postgres:
+        image: postgres:14
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: td_test
+        ports:
+          - 5432:5432
+        # Add health check to ensure database is ready
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
 
     steps:
       - name: Install packages
@@ -71,15 +88,18 @@ jobs:
 
       - name: Set up Ruby
         uses: ruby/setup-ruby@v1
-        working-directory: ./teamdraft_app
         with:
           ruby-version: .ruby-version
           bundler-cache: true
+          working-directory: ./teamdraft_app
 
       - name: Run tests
         working-directory: ./teamdraft_app
         env:
           RAILS_ENV: test
+          DB_USER: postgres
+          DB_PASSWORD: postgres
+          DB_HOST: localhost
         run: |
           bin/rails db:test:prepare
           bundle exec rspec
