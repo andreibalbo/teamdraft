@@ -25,10 +25,12 @@ Rails.application.routes.draw do
   resources :matches do
     get "players", on: :member
     post "players", to: "matches#update_players", on: :member
-    resources :drafts, only: [ :create, :show, :destroy ] do
+    resources :drafts, only: [ :destroy ] do
       post :generate, on: :collection
     end
   end
+
+  resources :drafts, only: [ :show ]
 
   root to: "home#index"
 end

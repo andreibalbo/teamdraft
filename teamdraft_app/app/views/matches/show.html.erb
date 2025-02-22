@@ -85,7 +85,7 @@
                       <td><%= number_to_percentage(draft.balance_score * 100, precision: 1) %></td>
                       <td><%= draft.created_at.strftime("%Y-%m-%d %H:%M") %></td>
                       <td>
-                        <%= link_to 'View', match_draft_path(@match, draft), class: 'button' %>
+                        <%= link_to 'View', draft_path(draft), class: 'button' %>
                         <%= button_to 'Delete', 
                               match_draft_path(@match, draft),
                               method: :delete,
