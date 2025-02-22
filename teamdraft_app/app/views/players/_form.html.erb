@@ -1,0 +1,36 @@
+<%= form_with(model: [@group, @player], local: true) do |form| %>
+  <% if @player.errors.any? %>
+    <div class="alert alert-danger">
+      <h2><%= pluralize(@player.errors.count, "error") %> prohibited this player from being saved:</h2>
+      <ul>
+        <% @player.errors.full_messages.each do |message| %>
+          <li><%= message %></li>
+        <% end %>
+      </ul>
+    </div>
+  <% end %>
+  <div class="form-group mb-3">
+    <%= form.label :name, class: "form-label" %>
+    <%= form.text_field :name, class: "form-control" %>
+  </div>
+  <div class="form-group mb-3">
+    <%= form.label :positioning, "Position (0 = attacking, 100 = defensive)", class: "form-label" %>
+    <%= form.number_field :positioning, in: 0..100, class: "form-control" %>
+  </div>
+  <div class="form-group mb-3">
+    <%= form.label :defense, class: "form-label" %>
+    <%= form.number_field :defense, in: 0..100, class: "form-control" %>
+  </div>
+  <div class="form-group mb-3">
+    <%= form.label :attack, class: "form-label" %>
+    <%= form.number_field :attack, in: 0..100, class: "form-control" %>
+  </div>
+  <div class="form-group mb-3">
+    <%= form.label :stamina, class: "form-label" %>
+    <%= form.number_field :stamina, in: 0..100, class: "form-control" %>
+  </div>
+  <div class="actions">
+    <%= form.submit class: "btn btn-primary" %>
+    <%= link_to "Back", group_players_path(@group), class: "btn btn-secondary" %>
+  </div>
+<% end %> 
