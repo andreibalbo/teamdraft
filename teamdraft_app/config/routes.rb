@@ -19,6 +19,7 @@ Rails.application.routes.draw do
 
   resources :groups do
     resources :players, shallow: true
+    resources :matches, shallow: true
   end
 
   root to: "home#index"
