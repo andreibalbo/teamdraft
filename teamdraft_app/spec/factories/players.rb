@@ -1,10 +1,10 @@
 FactoryBot.define do
   factory :player do
     name { Faker::Name.name }
-    positioning { Faker::Number.between(from: 0, to: 100) }
-    defense { Faker::Number.between(from: 0, to: 100) }
-    attack { Faker::Number.between(from: 0, to: 100) }
-    stamina { Faker::Number.between(from: 0, to: 100) }
-    group { create(:group) }
+    positioning { rand(0..100) }
+    defense { rand(0..100) }
+    attack { rand(0..100) }
+    stamina { rand(0..100) }
+    group
   end
 end
