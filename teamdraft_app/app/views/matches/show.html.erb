@@ -1,0 +1,33 @@
+<div class="container mt-4">
+  <div class="row">
+    <div class="col-md-8 offset-md-2">
+      <div class="card">
+        <div class="card-header">
+          <h2>Match Details</h2>
+          <h6 class="text-muted">Group: <%= @group.name %></h6>
+        </div>
+        <div class="card-body">
+          <div class="row">
+            <div class="col-md-6">
+              <p>
+                <strong>Date:</strong>
+                <%= @match.datetime.strftime("%Y-%m-%d") %>
+              </p>
+              <p>
+                <strong>Time:</strong>
+                <%= @match.datetime.strftime("%H:%M") %>
+              </p>
+            </div>
+          </div>
+          <div class="mt-3">
+            <%= link_to 'Edit', edit_match_path(@match), class: 'button' %>
+            <%= link_to 'Back', group_path(@group), class: 'button' %>
+            <%= link_to 'Delete', match_path(@match),
+                data: { turbo_method: :delete, turbo_confirm: 'Are you sure?' },
+                class: 'button' %>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

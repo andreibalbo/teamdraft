@@ -1,0 +1,20 @@
+<%= form_with(model: [@match.new_record? ? @group : nil, @match], local: true) do |form| %>
+  <% if @match.errors.any? %>
+    <div class="alert alert-danger">
+      <h2><%= pluralize(@match.errors.count, "error") %> prohibited this match from being saved:</h2>
+      <ul>
+        <% @match.errors.full_messages.each do |message| %>
+          <li><%= message %></li>
+        <% end %>
+      </ul>
+    </div>
+  <% end %>
+  <div class="form-group mb-3">
+    <%= form.label :datetime, "Date and Time", class: "form-label" %>
+    <%= form.datetime_local_field :datetime, class: "form-control" %>
+  </div>
+  <div class="actions">
+    <%= form.submit class: "btn btn-primary" %>
+    <%= link_to "Back", group_matches_path(@group), class: "btn btn-secondary" %>
+  </div>
+<% end %> 
