@@ -3,7 +3,7 @@ class Player < ApplicationRecord
   # has_and_belongs_to_many :matches
 
   validates :name, presence: true
-  validates :positioning, :defensive, :offensive, :stamina,
+  validates :positioning, :defense, :attack, :stamina,
     presence: true,
     numericality: {
       only_integer: true,
