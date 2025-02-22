@@ -1,0 +1,60 @@
+<div class="container mt-4">
+  <div class="row">
+    <div class="col-md-8 offset-md-2">
+      <div class="card">
+        <div class="card-header">
+          <h2>Select Players for Match</h2>
+          <h6 class="text-muted">
+            Group: <%= @group.name %> | 
+            Match: <%= @match.datetime.strftime("%Y-%m-%d %H:%M") %>
+          </h6>
+        </div>
+        <div class="card-body">
+          <%= form_with(url: players_match_path(@match), method: :post) do |f| %>
+            <div class="players-selection">
+              <table class="table">
+                <thead>
+                  <tr>
+                    <th>Select</th>
+                    <th>Name</th>
+                    <th>Position</th>
+                    <th>Attack</th>
+                    <th>Defense</th>
+                    <th>Stamina</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <% @available_players.each do |player| %>
+                    <tr>
+                      <td>
+                        <%= check_box_tag 'player_ids[]', 
+                            player.id, 
+                            @selected_player_ids&.include?(player.id),
+                            id: "player_#{player.id}" %>
+                      </td>
+                      <td>
+                        <%= label_tag "player_#{player.id}", player.name %>
+                      </td>
+                      <td>
+                        <%= player.positioning %>
+                        (<%= player.positioning <= 50 ? 'Defensive' : 'Attacking' %>)
+                      </td>
+                      <td><%= player.attack %></td>
+                      <td><%= player.defense %></td>
+                      <td><%= player.stamina %></td>
+                    </tr>
+                  <% end %>
+                </tbody>
+              </table>
+            </div>
+            <div class="actions mt-3">
+              <%= f.submit "Update Players", class: "btn btn-primary" %>
+              <%= link_to "Back", match_path(@match), class: "btn btn-secondary" %>
+            </div>
+          <% end %>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+ 

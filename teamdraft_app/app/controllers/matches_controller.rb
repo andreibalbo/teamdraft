@@ -100,6 +100,40 @@ class MatchesController < ApplicationController
     end
   end
 
+  def players
+    result = MatchService::Details.new(
+      match_id: params[:id],
+      user: current_user
+    ).call
+
+    if result[:success]
+      @match = result[:match]
+      @group = result[:group]
+      @available_players = @group.players
+      @selected_player_ids = @match.player_ids
+    else
+      redirect_to groups_path, alert: result[:error]
+    end
+  end
+
+  def update_players
+    result = MatchService::UpdatePlayers.new(
+      match_id: params[:id],
+      player_ids: params[:player_ids],
+      user: current_user
+    ).call
+
+    if result[:success]
+      redirect_to match_path(result[:match]), notice: "Players updated successfully."
+    else
+      @match = result[:match]
+      @group = result[:group]
+      @available_players = @group.players
+      @selected_player_ids = params[:player_ids]
+      render :players, status: :unprocessable_entity
+    end
+  end
+
   private
 
     def match_params

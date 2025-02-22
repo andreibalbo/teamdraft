@@ -22,7 +22,7 @@
           <div class="participating-players mt-4">
             <div class="d-flex justify-content-between align-items-center mb-3">
               <h3>Participating Players (<%= @match.participations.count %>)</h3>
-              <%= link_to 'Add Player', '#', class: 'button' %>
+              <%= link_to 'Select Players', players_match_path(@match), class: 'button' %>
             </div>
             <% if @match.players.any? %>
               <table class="table">
