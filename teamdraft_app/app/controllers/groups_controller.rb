@@ -1,14 +1,21 @@
 class GroupsController < ApplicationController
-  before_action :set_group, only: [ :show ]
-  before_action :set_managed_group, only: [ :edit, :update, :destroy ]
-  rescue_from ActiveRecord::RecordNotFound, with: :group_not_found
-
   def index
-    @groups = current_user.groups
+    result = GroupService::List.new(user: current_user).call
+    @groups = result[:groups]
   end
 
   def show
-    @memberships = @group.memberships.includes(:user)
+    result = GroupService::Details.new(
+      group_id: params[:id],
+      user: current_user
+    ).call
+
+    if result[:success]
+      @memberships = result[:memberships]
+      @group = result[:group]
+    else
+      redirect_to groups_path, alert: result[:error]
+    end
   end
 
   def new
@@ -16,47 +23,62 @@ class GroupsController < ApplicationController
   end
 
   def edit
+    result = GroupService::Edit.new(
+      group_id: params[:id],
+      user: current_user
+    ).call
+
+    if result[:success]
+      @group = result[:group]
+    else
+      redirect_to groups_path, alert: result[:error]
+    end
   end
 
   def create
-    @group = Group.new(group_params)
+    result = GroupService::Create.new(
+      params: group_params,
+      user: current_user
+    ).call
 
-    if @group.save
-      @group.memberships.create!(user: current_user, role: :admin)
-      redirect_to @group, notice: "Group was successfully created."
+    if result[:success]
+      redirect_to result[:group], notice: "Group was successfully created."
     else
+      @group = result[:group]
       render :new, status: :unprocessable_entity
     end
   end
 
   def update
-    if @group.update(group_params)
-      redirect_to @group, notice: "Group was successfully updated."
+    result = GroupService::Update.new(
+      group_id: params[:id],
+      params: group_params,
+      user: current_user
+    ).call
+
+    if result[:success]
+      redirect_to result[:group], notice: "Group was successfully updated."
     else
+      @group = result[:group]
       render :edit, status: :unprocessable_entity
     end
   end
 
   def destroy
-    @group.destroy
-    redirect_to groups_url, notice: "Group was successfully deleted."
+    result = GroupService::Destroy.new(
+      group_id: params[:id],
+      user: current_user
+    ).call
+
+    if result[:success]
+      redirect_to groups_url, notice: "Group was successfully deleted."
+    else
+      redirect_to groups_path, alert: result[:error] || "Failed to delete group."
+    end
   end
 
 private
-
-  def set_group
-    @group = current_user.groups.find(params[:id])
-  end
-
-  def set_managed_group
-    @group = current_user.managed_groups.find(params[:id])
-  end
-
   def group_params
     params.require(:group).permit(:name, :description, :category)
-  end
-
-  def group_not_found
-    redirect_to root_path, alert: "You don't have access to this group"
   end
 end
