@@ -40,7 +40,7 @@ class Draft < ApplicationRecord
         attack: players.sum(&:attack),
         defense: players.sum(&:defense),
         stamina: players.sum(&:stamina),
-        positioning: players.average(&:positioning)&.round(2) || 0
+        positioning: players.sum(&:positioning)
       }
     end
 

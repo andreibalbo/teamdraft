@@ -8,22 +8,9 @@ class DraftsController < ApplicationController
     ).call
 
     if result[:success]
-      @match = result[:match]
-      @draft = result[:draft]
-      @group = result[:group]
-    else
-      redirect_to match_path(params[:match_id]), alert: result[:error]
-    end
-  end
+      draft = result[:draft]
 
-  def destroy
-    result = DraftService::Destroy.new(
-      draft_id: params[:id],
-      user: current_user
-    ).call
-
-    if result[:success]
-      redirect_to match_path(result[:match]), notice: "Draft was successfully deleted."
+      redirect_to match_draft_path(params[:match_id], draft), notice: "Draft was successfully generated."
     else
       redirect_to match_path(params[:match_id]), alert: result[:error]
     end
@@ -39,6 +26,19 @@ class DraftsController < ApplicationController
       @draft = result[:draft]
       @match = result[:match]
       @group = result[:group]
+    else
+      redirect_to match_path(params[:match_id]), alert: result[:error]
+    end
+  end
+
+  def destroy
+    result = DraftService::Destroy.new(
+      draft_id: params[:id],
+      user: current_user
+    ).call
+
+    if result[:success]
+      redirect_to match_path(result[:match]), notice: "Draft was successfully deleted."
     else
       redirect_to match_path(params[:match_id]), alert: result[:error]
     end
