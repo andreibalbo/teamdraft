@@ -6,7 +6,7 @@ module MatchService
     end
 
     def call
-      match = Match.find_by(id: @match_id)
+      match = Match.includes(:players, :participations).find_by(id: @match_id)
       return { success: false, error: "Match not found" } unless match
 
       group = @current_user.groups.find_by(id: match.group_id)

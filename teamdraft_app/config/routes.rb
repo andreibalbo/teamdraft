@@ -22,5 +22,10 @@ Rails.application.routes.draw do
     resources :matches, shallow: true
   end
 
+  resources :matches do
+    get "players", on: :member
+    post "players", to: "matches#update_players", on: :member
+  end
+
   root to: "home#index"
 end

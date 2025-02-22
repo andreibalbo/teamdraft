@@ -96,4 +96,31 @@ RSpec.describe "Matches", type: :request do
       expect(response).to redirect_to(group_matches_path(group))
     end
   end
+
+  describe "GET /matches/:id/players" do
+    it "returns http success" do
+      get players_match_path(match)
+      expect(response).to have_http_status(:success)
+    end
+  end
+
+  describe "POST /matches/:id/players" do
+    let(:player) { create(:player, group: group) }
+    let(:other_player) { create(:player, group: group) }
+
+    it "updates match players" do
+      post players_match_path(match), params: { player_ids: [ player.id, other_player.id ] }
+      expect(response).to redirect_to(match_path(match))
+      expect(match.players.reload).to match_array([ player, other_player ])
+    end
+
+    context "with invalid player" do
+      let(:invalid_player) { create(:player) } # player from different group
+
+      it "renders players form with error" do
+        post players_match_path(match), params: { player_ids: [ invalid_player.id ] }
+        expect(response).to have_http_status(:unprocessable_entity)
+      end
+    end
+  end
 end

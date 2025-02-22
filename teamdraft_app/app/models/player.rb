@@ -1,6 +1,7 @@
 class Player < ApplicationRecord
   belongs_to :group
-  # has_and_belongs_to_many :matches
+  has_many :participations, dependent: :destroy
+  has_many :matches, through: :participations
 
   validates :name, presence: true
   validates :positioning, :defense, :attack, :stamina,
