@@ -14,11 +14,11 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Set up Ruby
-        working-directory: ./teamdraft_app
         uses: ruby/setup-ruby@v1
         with:
           ruby-version: .ruby-version
           bundler-cache: true
+          working-directory: ./teamdraft_app
 
       - name: Scan for common Rails security vulnerabilities using static analysis
         working-directory: ./teamdraft_app
@@ -33,10 +33,10 @@ jobs:
 
       - name: Set up Ruby
         uses: ruby/setup-ruby@v1
-        working-directory: ./teamdraft_app
         with:
           ruby-version: .ruby-version
           bundler-cache: true
+          working-directory: ./teamdraft_app
 
       - name: Scan for security vulnerabilities in JavaScript dependencies
         working-directory: ./teamdraft_app
@@ -50,10 +50,10 @@ jobs:
 
       - name: Set up Ruby
         uses: ruby/setup-ruby@v1
-        working-directory: ./teamdraft_app
         with:
           ruby-version: .ruby-version
           bundler-cache: true
+          working-directory: ./teamdraft_app
 
       - name: Lint code for consistent style
         working-directory: ./teamdraft_app
@@ -71,10 +71,10 @@ jobs:
 
       - name: Set up Ruby
         uses: ruby/setup-ruby@v1
-        working-directory: ./teamdraft_app
         with:
           ruby-version: .ruby-version
           bundler-cache: true
+          working-directory: ./teamdraft_app
 
       - name: Run tests
         working-directory: ./teamdraft_app
