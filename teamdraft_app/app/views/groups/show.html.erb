@@ -20,6 +20,7 @@
         <tr>
           <th>Date</th>
           <th>Time</th>
+          <th>Players</th>
           <th>Actions</th>
         </tr>
       </thead>
@@ -28,6 +29,7 @@
           <tr>
             <td><%= match.datetime.strftime("%Y-%m-%d") %></td>
             <td><%= match.datetime.strftime("%H:%M") %></td>
+            <td><%= match.participations.count %></td>
             <td>
               <%= link_to 'View', match_path(match), class: "button" %>
               <%= link_to 'Edit', edit_match_path(match), class: "button" %>

@@ -10,10 +10,12 @@ module GroupService
 
       if group
         memberships = group.memberships.includes(:user)
+        matches = group.matches.includes(:participations)
         {
           success: true,
           group: group,
           memberships: memberships,
+          matches: matches,
           players: group.players
         }
       else
