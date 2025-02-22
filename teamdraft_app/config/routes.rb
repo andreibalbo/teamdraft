@@ -17,7 +17,9 @@ Rails.application.routes.draw do
   get "/signup" => "users#new", as: :signup
   post "/users" => "users#create"
 
-  resources :groups
+  resources :groups do
+    resources :players, shallow: true
+  end
 
   root to: "home#index"
 end
