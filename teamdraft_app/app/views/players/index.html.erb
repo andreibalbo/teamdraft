@@ -1,0 +1,50 @@
+<div class="container mt-4">
+  <div class="card">
+    <div class="card-header">
+      <div class="d-flex justify-content-between align-items-center">
+        <h2>Players - <%= @group.name %></h2>
+        <%= link_to 'Add New Player', new_group_player_path(@group), class: "button" %>
+      </div>
+    </div>
+    <div class="card-body">
+      <table>
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th>Position</th>
+            <th>Attack</th>
+            <th>Defense</th>
+            <th>Stamina</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% @players.each do |player| %>
+            <tr>
+              <td><%= player.name %></td>
+              <td>
+                <%= player.positioning %>
+                (<%= player.positioning <= 50 ? 'Defensive' : 'Attacking' %>)
+              </td>
+              <td><%= player.attack %></td>
+              <td><%= player.defense %></td>
+              <td><%= player.stamina %></td>
+              <td>
+                <%= link_to 'View', player_path(player), class: "button" %>
+                <%= link_to 'Edit', edit_player_path(player), class: "button" %>
+                <%= link_to 'Delete', player_path(player), 
+                    method: :delete, 
+                    data: { confirm: 'Are you sure?' }, 
+                    class: "button" %>
+              </td>
+            </tr>
+          <% end %>
+        </tbody>
+      </table>
+    </div>
+    <div class="card-footer">
+      <%= link_to 'Back to Group', group_path(@group), class: "button" %>
+    </div>
+  </div>
+</div>
+ 
