@@ -19,4 +19,4 @@ module PlayerService
       }
     end
   end
-end 
+end
