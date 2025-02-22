@@ -7,7 +7,7 @@ RSpec.describe "Players", type: :request do
   let!(:player) { create(:player, group: group) }
 
   before do
-    sign_in user
+    post "/login", params: { email: user.email, password: user.password }
   end
 
   describe "GET /groups/:group_id/players" do

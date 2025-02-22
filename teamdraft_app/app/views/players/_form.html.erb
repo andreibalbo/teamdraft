@@ -1,4 +1,4 @@
-<%= form_with(model: [@group, @player], local: true) do |form| %>
+<%= form_with(model: [@player.new_record? ? @group : nil, @player], local: true) do |form| %>
   <% if @player.errors.any? %>
     <div class="alert alert-danger">
       <h2><%= pluralize(@player.errors.count, "error") %> prohibited this player from being saved:</h2>
@@ -14,7 +14,7 @@
     <%= form.text_field :name, class: "form-control" %>
   </div>
   <div class="form-group mb-3">
-    <%= form.label :positioning, "Position (0 = Defensive, 100 = Attacking)", class: "form-label" %>
+    <%= form.label :positioning, "Position (0 = defensive, 100 = attacking)", class: "form-label" %>
     <%= form.number_field :positioning, in: 0..100, class: "form-control" %>
   </div>
   <div class="form-group mb-3">
