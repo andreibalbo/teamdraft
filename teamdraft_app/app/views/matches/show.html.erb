@@ -60,6 +60,46 @@
               <p class="text-muted">No players added to this match yet.</p>
             <% end %>
           </div>
+          <div class="drafts mt-4">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+              <h3>Team Drafts (<%= @match.drafts.count %>)</h3>
+              <%= button_to 'Generate New Draft', 
+                    generate_match_drafts_path(@match), 
+                    class: 'button',
+                    data: { turbo: false } %>
+            </div>
+            <% if @match.drafts.any? %>
+              <table class="table">
+                <thead>
+                  <tr>
+                    <th>#</th>
+                    <th>Balance Score</th>
+                    <th>Created</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <% @match.drafts.order(balance_score: :asc).each do |draft| %>
+                    <tr>
+                      <td><%= draft.id %></td>
+                      <td><%= number_to_percentage(draft.balance_score * 100, precision: 1) %></td>
+                      <td><%= draft.created_at.strftime("%Y-%m-%d %H:%M") %></td>
+                      <td>
+                        <%= link_to 'View', match_draft_path(@match, draft), class: 'button' %>
+                        <%= button_to 'Delete', 
+                              match_draft_path(@match, draft),
+                              method: :delete,
+                              class: 'button button-danger',
+                              data: { turbo_confirm: 'Are you sure?' } %>
+                      </td>
+                    </tr>
+                  <% end %>
+                </tbody>
+              </table>
+            <% else %>
+              <p class="text-muted">No drafts generated yet.</p>
+            <% end %>
+          </div>
           <div class="mt-3">
             <%= link_to 'Edit', edit_match_path(@match), class: 'button' %>
             <%= link_to 'Back', group_path(@group), class: 'button' %>

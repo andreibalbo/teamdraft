@@ -28,4 +28,19 @@ class DraftsController < ApplicationController
       redirect_to match_path(params[:match_id]), alert: result[:error]
     end
   end
+
+  def show
+    result = DraftService::Details.new(
+      draft_id: params[:id],
+      user: current_user
+    ).call
+
+    if result[:success]
+      @draft = result[:draft]
+      @match = result[:match]
+      @group = result[:group]
+    else
+      redirect_to match_path(params[:match_id]), alert: result[:error]
+    end
+  end
 end
