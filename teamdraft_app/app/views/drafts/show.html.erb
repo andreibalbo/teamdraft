@@ -88,10 +88,10 @@
           <div class="team-differences small text-muted mt-4">
             <% diff = @draft.team_stats_difference %>
             <strong>Team Differences:</strong>
-            <span>ATK: <%= number_to_percentage(diff[:attack] * 100, precision: 1) %></span> |
-            <span>DEF: <%= number_to_percentage(diff[:defense] * 100, precision: 1) %></span> |
-            <span>STA: <%= number_to_percentage(diff[:stamina] * 100, precision: 1) %></span> |
-            <span>POS: <%= number_to_percentage(diff[:positioning] * 100, precision: 1) %></span>
+            <span>ATK: <%= diff[:attack] %></span> |
+            <span>DEF: <%= diff[:defense] %></span> |
+            <span>STA: <%= diff[:stamina] %></span> |
+            <span>POS: <%= diff[:positioning] %></span>
           </div>
           <div class="mt-4">
             <%= link_to 'Back to Match', match_path(@match), class: 'button' %>
@@ -106,4 +106,3 @@
     </div>
   </div>
 </div>
- 

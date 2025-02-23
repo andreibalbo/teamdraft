@@ -29,7 +29,7 @@ class Draft < ApplicationRecord
       attack: (a_stats[:attack] - b_stats[:attack]).abs,
       defense: (a_stats[:defense] - b_stats[:defense]).abs,
       stamina: (a_stats[:stamina] - b_stats[:stamina]).abs,
-      positioning: (a_stats[:positioning] - b_stats[:positioning]).abs.round(2)
+      positioning: (a_stats[:positioning] - b_stats[:positioning]).abs
     }
   end
 
