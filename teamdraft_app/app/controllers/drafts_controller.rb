@@ -12,7 +12,8 @@ class DraftsController < ApplicationController
       @match = result[:match]
       @group = result[:group]
     else
-      redirect_to match_path(@draft.match), alert: result[:error]
+      path = @draft&.match ? match_path(@draft.match) : root_path
+      redirect_to path, alert: result[:error]
     end
   end
 
@@ -39,7 +40,8 @@ class DraftsController < ApplicationController
     if result[:success]
       redirect_to match_path(result[:match]), notice: "Draft was successfully deleted."
     else
-      redirect_to match_path(params[:match_id]), alert: result[:error]
+      path = result[:match] ? match_path(result[:match]) : root_path
+      redirect_to path, alert: result[:error]
     end
   end
 end

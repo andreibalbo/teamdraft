@@ -51,7 +51,6 @@ RSpec.describe "Generate Match Draft", type: :system do
 
     expect {
       click_button "Delete Draft"
-      page.accept_confirm
     }.to change(Draft, :count).by(-1)
 
     expect(page).to have_content("Draft was successfully deleted.")

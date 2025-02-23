@@ -14,6 +14,10 @@ RSpec.describe Draft, type: :model do
   let(:match) { create(:match, group: group) }
   let(:players) { create_list(:player, 4, group: group) }
 
+  before do
+    players.each { |player| create(:participation, match: match, player: player) }
+  end
+
   describe 'custom validations' do
     it 'validates players belong to match group' do
       other_group_player = create(:player)

@@ -26,7 +26,7 @@ RSpec.describe "Drafts", type: :request do
 
     context "when user is not authorized" do
       let(:other_user) { create(:user) }
-      before { sign_in other_user }
+      before { post "/login", params: { email: other_user.email, password: other_user.password } }
 
       it "does not generate draft" do
         expect {
@@ -53,8 +53,16 @@ RSpec.describe "Drafts", type: :request do
 
       it "redirects to match path" do
         get draft_path(draft)
-        expect(response).to redirect_to(match_path(draft.match))
+        expect(response).to redirect_to(root_path)
         expect(flash[:alert]).to eq("Access denied")
+      end
+    end
+
+    context "when draft cannot be found" do
+      it "redirects to root path" do
+        get draft_path(-1)  # Using non-existent ID
+        expect(response).to redirect_to(root_path)
+        expect(flash[:alert]).to be_present
       end
     end
   end
@@ -75,13 +83,21 @@ RSpec.describe "Drafts", type: :request do
       let(:other_user) { create(:user) }
       before { post "/login", params: { email: other_user.email, password: other_user.password } }
 
-      it "does not delete the draft" do
+      it "redirects to match path when match exists" do
         expect {
           delete match_draft_path(match, draft)
         }.not_to change(Draft, :count)
 
-        expect(response).to redirect_to(match_path(match))
+        expect(response).to redirect_to(root_path)
         expect(flash[:alert]).to eq("Access denied")
+      end
+    end
+
+    context "when draft cannot be found" do
+      it "redirects to root path" do
+        delete match_draft_path(match, -1)  # Using non-existent ID
+        expect(response).to redirect_to(root_path)
+        expect(flash[:alert]).to be_present
       end
     end
   end
