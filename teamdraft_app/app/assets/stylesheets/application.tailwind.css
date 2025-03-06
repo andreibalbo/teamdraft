@@ -1,34 +1,3 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
-
-/* Base styles for form elements */
-@layer base {
-
-    input,
-    select,
-    textarea {
-        @apply rounded-lg border-gray-100;
-    }
-}
-
-/* Component styles */
-@layer components {
-    .btn {
-        @apply py-2 px-4 rounded-lg font-medium focus:outline-none focus:ring-2 focus:ring-opacity-50;
-    }
-
-    .btn-primary {
-        @apply bg-primary text-white hover:bg-opacity-90 focus:ring-primary;
-    }
-
-    .btn-secondary {
-        @apply bg-secondary text-gray-800 hover:bg-opacity-90 focus:ring-secondary;
-    }
-
-    .form-input,
-    .form-select,
-    .form-textarea {
-        @apply mt-1 block w-full rounded-lg border-gray-100 shadow-sm focus:border-primary focus:ring focus:ring-primary focus:ring-opacity-50;
-    }
-}
+@import "tailwindcss/base";
+@import "tailwindcss/components";
+@import "tailwindcss/utilities";
