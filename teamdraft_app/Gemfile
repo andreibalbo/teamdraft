@@ -49,6 +49,11 @@ gem "bcrypt", "~> 3.1.7"
 # Use HTML Beautifier for Rails
 gem "htmlbeautifier"
 
+# Use Tailwind CSS
+gem "tailwindcss-ruby", "~> 4.0"
+
+# Use Tailwind CSS Rails
+gem "tailwindcss-rails", "~> 4.1"
 
 group :development, :test do
   # See https://guides.rubyonrails.org/debugging_rails_applications.html#debugging-with-the-debug-gem
@@ -82,7 +87,3 @@ group :test do
   gem "database_cleaner-active_record"
   gem "simplecov", require: false
 end
-
-gem "tailwindcss-ruby", "~> 4.0"
-
-gem "tailwindcss-rails", "~> 4.1"
