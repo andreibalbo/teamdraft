@@ -18,18 +18,28 @@
     <%= javascript_importmap_tags %>
   </head>
   <body>
-    <div id="user_nav">
-      <% if current_user %>
-        Logged in as <%= current_user.email %>.
-        <%= link_to "Log out", logout_path, data: { turbo_method: :delete } %>
-      <% else %>
-        <%= link_to "Sign up", signup_path %> or
-        <%= link_to "log in", login_path %>
+    <%= render(HeaderComponent.new(title: "TeamDraft", current_user: current_user)) %>
+    <div class="fixed top-6 right-6 z-50">
+      <% flash.each do |name, msg| %>
+        <div class="hidden bg-red-50"></div>
+        <div class="hidden bg-green-50"></div>
+        <div id="flash_<%= name %>" 
+             data-controller="flash"
+             class="flash-message bg-<%= name == 'notice' ? 'green-50' : 'red-50' %> border border-light rounded-lg p-4 mb-4 transition-opacity duration-300 ease-in-out" 
+             style="min-width: 250px; opacity: 1;">
+          <div class="flex items-center justify-between">
+            <div class="<%= name == 'notice' ? 'text-green-600' : 'text-red-600' %>">
+              <%= msg %>
+            </div>
+            <button data-action="flash#close" class="ml-4 text-gray-400 hover:text-gray-600">
+              ×
+            </button>
+          </div>
+        </div>
       <% end %>
     </div>
-    <% flash.each do |name, msg| %>
-      <%= content_tag :div, msg, :id => "flash_#{name}" %>
-    <% end %>
-    <%= yield %>
+    <div class="p-6">
+      <%= yield %>
+    </div>
   </body>
 </html>

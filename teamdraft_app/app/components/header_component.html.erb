@@ -1,0 +1,14 @@
+<header class="py-2 px-6 border-b border-light flex justify-between items-center flex-row">
+  <% if @title %>
+    <span class="text-xl font-semibold"><%= @title %></span>
+  <% end %>
+  <div id="user_nav">
+    <% if @current_user %>
+      <%= @current_user.email %>.
+      <%= link_to "Log out", logout_path, data: { turbo_method: :delete } %>
+    <% else %>
+      <%= link_to "Sign up", signup_path %> or
+      <%= link_to "log in", login_path %>
+    <% end %>
+  </div>
+</header>
