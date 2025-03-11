@@ -1,6 +1,4 @@
 class DraftsController < ApplicationController
-  before_action :authenticate_user!
-
   def show
     result = DraftService::Details.new(
       draft_id: params[:id],
