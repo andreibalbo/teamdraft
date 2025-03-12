@@ -1,16 +1,8 @@
-<div class="container mt-4">
-  <div class="row">
-    <div class="col-md-8 offset-md-2">
-      <div class="card">
-        <div class="card-header">
-          <h2>Editing Player</h2>
-          <h6 class="text-muted">Group: <%= @group.name %></h6>
-        </div>
-        <div class="card-body">
-          <%= render 'form' %>
-        </div>
-      </div>
-    </div>
+<div class="flex flex-col gap-6 lg:max-w-md w-full mx-auto">
+  <span class="section-title">Edit Player</span>
+  <span class="text-gray-600">Group: <%= @group.name %></span>
+  <%= render 'form' %>
+  <div class="actions">
+    <%= link_to 'Back', group_path(@group), class: "button text-neutral" %>
   </div>
 </div>
- 
