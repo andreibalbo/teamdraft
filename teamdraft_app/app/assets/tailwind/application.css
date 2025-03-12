@@ -33,24 +33,32 @@ select {
 }
 
 table {
+    font-size: 0.875rem;
+    border-collapse: separate;
+    border-spacing: 0;
     width: 100%;
+    border: 1px solid var(--color-light);
     border-radius: var(--btn-radius);
     overflow: hidden;
-    box-shadow: 0 0 10px 0 rgba(0, 0, 0, 0.1);
+}
 
-    th,
-    td {
-        padding: 0.5rem;
-        text-align: left;
-    }
+/* Optional: If you want borders between cells */
+th,
+td {
+    text-align: center;
+    padding: 0.5rem;
+    border-bottom: 1px solid var(--color-light);
+    /* border-right: 1px solid var(--color-light); */
+}
 
-    th {
-        background-color: var(--color-secondary);
-    }
+/* Remove extra borders from last elements */
+th:last-child,
+td:last-child {
+    border-right: none;
+}
 
-    td {
-        border-top: 1px solid var(--color-light);
-    }
+tr:last-child td {
+    border-bottom: none;
 }
 
 .box {

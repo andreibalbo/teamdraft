@@ -11,4 +11,12 @@ class Player < ApplicationRecord
       greater_than_or_equal_to: 0,
       less_than_or_equal_to: 100
     }
+
+  def position
+    return "Defensive" if positioning <= 35
+
+    return "Midfield" if positioning <= 65
+
+    "Attacking"
+  end
 end
