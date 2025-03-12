@@ -95,6 +95,7 @@ tr:last-child td {
     padding: var(--btn-padding);
     border-radius: var(--btn-radius);
     cursor: pointer;
+    font-size: 0.875rem;
 }
 
 .btn-primary:hover {
@@ -114,6 +115,7 @@ tr:last-child td {
     border: 1px solid var(--color-secondary);
     border-radius: var(--btn-radius);
     cursor: pointer;
+    font-size: 0.875rem;
 }
 
 .btn-secondary:hover {
