@@ -1,0 +1,31 @@
+<div class="team-section">
+  <span class="subsection-title"><%= title %></span>
+  <div class="team-stats small text-muted mb-2">
+    <span>ATK: <%= stats[:attack] %></span> |
+    <span>DEF: <%= stats[:defense] %></span> |
+    <span>STA: <%= stats[:stamina] %></span> |
+    <span>POS: <%= stats[:positioning] %></span>
+  </div>
+  <table class="table">
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>POS</th>
+        <th>ATK</th>
+        <th>DEF</th>
+        <th>STA</th>
+      </tr>
+    </thead>
+    <tbody>
+      <% players.each do |player| %>
+        <tr>
+          <td><%= player.name %></td>
+          <td><%= player.position %></td>
+          <td><%= player.attack %></td>
+          <td><%= player.defense %></td>
+          <td><%= player.stamina %></td>
+        </tr>
+      <% end %>
+    </tbody>
+  </table>
+</div>
