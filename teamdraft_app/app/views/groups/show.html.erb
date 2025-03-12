@@ -4,113 +4,13 @@
       <span class="section-title"><%= @group.name %></span>
       <span class="text-sm text-neutral"><%= @group.description %></span>
     </div>
-    <div class="actions flex flex-row gap-2 flex-wrap">
+    <div class="actions flex flex-row gap-2 flex-wrap justify-end">
       <%= link_to 'Edit', edit_group_path(@group), class: "btn-secondary" %>
       <%= link_to 'Back', groups_path, class: "btn-secondary" %>
     </div>
   </div>
-  <div class="box flex flex-col gap-6">
-    <div class="flex flex-row justify-between items-center">
-      <span class="subsection-title">Matches</span>
-      <%= link_to 'New Match', new_group_match_path(@group), class: "btn-primary" %>
-    </div>
-    <% if @group.matches.any? %>
-      <div class="hidden lg:block">
-        <table class="table">
-          <thead>
-            <tr>
-              <th>Date</th>
-              <th>Time</th>
-              <th>Players</th>
-              <th>Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            <% @group.matches.order(datetime: :desc).each do |match| %>
-              <tr>
-                <td><%= match.datetime.strftime("%Y-%m-%d") %></td>
-                <td><%= match.datetime.strftime("%H:%M") %></td>
-                <td><%= match.participations.count %></td>
-                <td>
-                  <%= link_to 'View', match_path(match), class: "btn-primary !py-1" %>
-                  <%= link_to 'Edit', edit_match_path(match), class: "btn-secondary !py-1" %>
-                  <%= link_to 'Delete', match_path(match),
-                  data: { turbo_method: :delete, turbo_confirm: 'Are you sure?' },
-                  class: "btn-danger !py-1" %>
-                </td>
-              </tr>
-            <% end %>
-          </tbody>
-        </table>
-      </div>
-      <div class="lg:hidden gap-2 flex flex-row flex-wrap justify-start" >
-        <% @group.matches.each do |match| %>
-          <%= link_to match_path(match), class: "box flex flex-col gap-1 !py-1 px-2 text-center overflow-x-hidden w-30" do %>
-            <div class="text-xs font-bold">
-              <%= match.datetime.strftime("%Y-%m-%d") %>
-            </div>
-            <div class="text-xs text-gray-600">
-              <%= match.datetime.strftime("%H:%M") %>
-            </div>
-          <% end %>
-        <% end %>
-      </div>
-    <% else %>
-      <p class="text-muted">No matches scheduled yet.</p>
-    <% end %>
-  </div>
-  <div class="players-list box flex flex-col gap-6">
-    <div class="flex flex-row justify-between items-center">
-      <span class="subsection-title">Players</span>
-      <%= link_to 'Add New Player', new_group_player_path(@group), class: "btn-primary" %>
-    </div>
-    <div class="hidden lg:block">
-      <table>
-        <thead>
-          <tr>
-            <th>Name</th>
-            <th>Position</th>
-            <th>Attack</th>
-            <th>Defense</th>
-            <th>Stamina</th>
-            <th>Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-          <% @group.players.each do |player| %>
-            <tr>
-              <td><%= player.name %></td>
-              <td>
-                <%= player.positioning %>
-                (<%= player.position %>)
-              </td>
-              <td><%= player.attack %></td>
-              <td><%= player.defense %></td>
-              <td><%= player.stamina %></td>
-              <td>
-                <%= link_to 'View', player_path(player), class: "btn-primary !py-1" %>
-                <%= link_to 'Edit', edit_player_path(player), class: "btn-secondary !py-1" %>
-                <%= link_to 'Delete', player_path(player), 
-                data: { turbo_method: :delete, turbo_confirm: 'Are you sure?' }, 
-                class: "btn-danger !py-1" %>
-              </td>
-            </tr>
-          <% end %>
-        </tbody>
-      </table>
-    </div>
-    <div class="lg:hidden gap-2 flex flex-row flex-wrap justify-start" >
-      <% @group.players.each do |player| %>
-        <%= link_to player_path(player), class: "box flex flex-col gap-1 !py-1 px-2 text-center overflow-x-hidden w-30" do %>
-          <div class="text-xs
-           font-bold"><%= player.name %></div>
-          <div class="text-xs text-gray-600">
-            <%= player.position %>
-          </div>
-        <% end %>
-      <% end %>
-    </div>
-  </div>
+  <%= render 'matches_list', group: @group %>
+  <%= render 'shared/players_list', group: @group %>
   <div class="members-list box flex flex-col gap-6">
     <span class="subsection-title">Managing Members</span>
     <table>
