@@ -3,7 +3,7 @@
     <span class="subsection-title">Players</span>
     <%= link_to 'Add New Player', new_group_player_path(@group), class: "btn-primary" %>
   </div>
-  <div class="hidden lg:block">
+  <div class="hidden lg:block max-h-96 overflow-y-auto">
     <table>
       <thead>
         <tr>
@@ -38,7 +38,7 @@
       </tbody>
     </table>
   </div>
-  <div class="lg:hidden gap-2 flex flex-row flex-wrap justify-start" >
+  <div class="lg:hidden gap-2 flex flex-row flex-wrap justify-start max-h-96 overflow-y-auto" >
     <% @group.players.each do |player| %>
       <%= link_to player_path(player), class: "box flex flex-col gap-1 !py-1 px-2 text-center overflow-x-hidden w-30" do %>
         <div class="text-xs

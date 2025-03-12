@@ -4,7 +4,7 @@
     <%= link_to 'New Match', new_group_match_path(@group), class: "btn-primary" %>
   </div>
   <% if @group.matches.any? %>
-    <div class="hidden lg:block">
+    <div class="hidden lg:block max-h-96 overflow-y-auto">
       <table class="table">
         <thead>
           <tr>
@@ -32,7 +32,7 @@
         </tbody>
       </table>
     </div>
-    <div class="lg:hidden gap-2 flex flex-row flex-wrap justify-start" >
+    <div class="lg:hidden gap-2 flex flex-row flex-wrap justify-start max-h-96 overflow-y-auto" >
       <% @group.matches.each do |match| %>
         <%= link_to match_path(match), class: "box flex flex-col gap-1 !py-1 px-2 text-center overflow-x-hidden w-30" do %>
           <div class="text-xs font-bold">
