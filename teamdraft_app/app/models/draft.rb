@@ -6,11 +6,11 @@ class Draft < ApplicationRecord
   validate :players_must_be_in_only_one_team
 
   def team_a_players
-    Player.where(id: team_a_player_ids)
+    Player.where(id: team_a_player_ids).order(:positioning)
   end
 
   def team_b_players
-    Player.where(id: team_b_player_ids)
+    Player.where(id: team_b_player_ids).order(:positioning)
   end
 
   def team_a_stats

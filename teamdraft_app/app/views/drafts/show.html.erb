@@ -1,108 +1,115 @@
-<div class="container mt-4">
-  <div class="row">
-    <div class="col-md-8 offset-md-2">
-      <div class="card">
-        <div class="card-header">
-          <div class="d-flex justify-content-between align-items-center">
-            <h2>Draft #<%= @draft.id %></h2>
-            <span class="badge bg-info">
-              Balance Score: <%= number_to_percentage(@draft.balance_score * 100, precision: 1) %>
-            </span>
+<div class="container flex flex-col gap-6">
+  <div class="box gap-6 flex flex-col">
+    <div class="flex flex-col lg:flex-row justify-between items-center">
+      <span class="section-title">Draft #<%= @draft.id %></span>
+      <span class="flex flex-row gap-2">
+        <span class="font-bold">
+          Balance Score: 
+        </span>
+        <%= number_to_percentage(@draft.balance_score * 100, precision: 1) %>
+      </span>
+    </div>
+    <div class="flex flex-col gap-2">
+      <div class="flex flex-row gap-2">
+        <span class="font-bold">
+          Group: 
+        </span>
+        <%= @group.name %>
+      </div>
+      <div class="flex flex-row gap-2">
+        <span class="font-bold">
+          Match: 
+        </span>
+        <%= @match.datetime.strftime("%Y-%m-%d %H:%M") %>
+      </div>
+    </div>
+  </div>
+  <div class="card-body">
+    <div class="row">
+      <div class="col-md-6">
+        <div class="team-section">
+          <h4>Team A</h4>
+          <% stats = @draft.team_a_stats %>
+          <div class="team-stats small text-muted mb-2">
+            <span>ATK: <%= stats[:attack] %></span> |
+            <span>DEF: <%= stats[:defense] %></span> |
+            <span>STA: <%= stats[:stamina] %></span> |
+            <span>POS: <%= stats[:positioning] %></span>
           </div>
-          <h6 class="text-muted">
-            Match: <%= @match.datetime.strftime("%Y-%m-%d %H:%M") %> | 
-            Group: <%= @group.name %>
-          </h6>
-        </div>
-        <div class="card-body">
-          <div class="row">
-            <div class="col-md-6">
-              <div class="team-section">
-                <h4>Team A</h4>
-                <% stats = @draft.team_a_stats %>
-                <div class="team-stats small text-muted mb-2">
-                  <span>ATK: <%= stats[:attack] %></span> |
-                  <span>DEF: <%= stats[:defense] %></span> |
-                  <span>STA: <%= stats[:stamina] %></span> |
-                  <span>POS: <%= stats[:positioning] %></span>
-                </div>
-                <table class="table">
-                  <thead>
-                    <tr>
-                      <th>Name</th>
-                      <th>Position</th>
-                      <th>ATK</th>
-                      <th>DEF</th>
-                      <th>STA</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    <% @draft.team_a_players.each do |player| %>
-                      <tr>
-                        <td><%= player.name %></td>
-                        <td><%= player.positioning %></td>
-                        <td><%= player.attack %></td>
-                        <td><%= player.defense %></td>
-                        <td><%= player.stamina %></td>
-                      </tr>
-                    <% end %>
-                  </tbody>
-                </table>
-              </div>
-            </div>
-            <div class="col-md-6">
-              <div class="team-section">
-                <h4>Team B</h4>
-                <% stats = @draft.team_b_stats %>
-                <div class="team-stats small text-muted mb-2">
-                  <span>ATK: <%= stats[:attack] %></span> |
-                  <span>DEF: <%= stats[:defense] %></span> |
-                  <span>STA: <%= stats[:stamina] %></span> |
-                  <span>POS: <%= stats[:positioning] %></span>
-                </div>
-                <table class="table">
-                  <thead>
-                    <tr>
-                      <th>Name</th>
-                      <th>Position</th>
-                      <th>ATK</th>
-                      <th>DEF</th>
-                      <th>STA</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    <% @draft.team_b_players.each do |player| %>
-                      <tr>
-                        <td><%= player.name %></td>
-                        <td><%= player.positioning %></td>
-                        <td><%= player.attack %></td>
-                        <td><%= player.defense %></td>
-                        <td><%= player.stamina %></td>
-                      </tr>
-                    <% end %>
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          </div>
-          <div class="team-differences small text-muted mt-4">
-            <% diff = @draft.team_stats_difference %>
-            <strong>Team Differences:</strong>
-            <span>ATK: <%= diff[:attack] %></span> |
-            <span>DEF: <%= diff[:defense] %></span> |
-            <span>STA: <%= diff[:stamina] %></span> |
-            <span>POS: <%= diff[:positioning] %></span>
-          </div>
-          <div class="mt-4">
-            <%= link_to 'Back to Match', match_path(@match), class: 'button' %>
-            <%= button_to 'Delete Draft', 
-                  match_draft_path(@match, @draft),
-                  method: :delete,
-                  class: 'button button-danger',
-                  data: { turbo_confirm: 'Are you sure?' } %>
-          </div>
+          <table class="table">
+            <thead>
+              <tr>
+                <th>Name</th>
+                <th>POS</th>
+                <th>ATK</th>
+                <th>DEF</th>
+                <th>STA</th>
+              </tr>
+            </thead>
+            <tbody>
+              <% @draft.team_a_players.each do |player| %>
+                <tr>
+                  <td><%= player.name %></td>
+                  <td><%= player.position %></td>
+                  <td><%= player.attack %></td>
+                  <td><%= player.defense %></td>
+                  <td><%= player.stamina %></td>
+                </tr>
+              <% end %>
+            </tbody>
+          </table>
         </div>
       </div>
+      <div class="col-md-6">
+        <div class="team-section">
+          <h4>Team B</h4>
+          <% stats = @draft.team_b_stats %>
+          <div class="team-stats small text-muted mb-2">
+            <span>ATK: <%= stats[:attack] %></span> |
+            <span>DEF: <%= stats[:defense] %></span> |
+            <span>STA: <%= stats[:stamina] %></span> |
+            <span>POS: <%= stats[:positioning] %></span>
+          </div>
+          <table class="table">
+            <thead>
+              <tr>
+                <th>Name</th>
+                <th>Position</th>
+                <th>ATK</th>
+                <th>DEF</th>
+                <th>STA</th>
+              </tr>
+            </thead>
+            <tbody>
+              <% @draft.team_b_players.each do |player| %>
+                <tr>
+                  <td><%= player.name %></td>
+                  <td><%= player.positioning %></td>
+                  <td><%= player.attack %></td>
+                  <td><%= player.defense %></td>
+                  <td><%= player.stamina %></td>
+                </tr>
+              <% end %>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+    <div class="team-differences small text-muted mt-4">
+      <% diff = @draft.team_stats_difference %>
+      <strong>Team Differences:</strong>
+      <span>ATK: <%= diff[:attack] %></span> |
+      <span>DEF: <%= diff[:defense] %></span> |
+      <span>STA: <%= diff[:stamina] %></span> |
+      <span>POS: <%= diff[:positioning] %></span>
+    </div>
+    <div class="flex flex-row gap-2">
+      <%= link_to 'Back to Match', match_path(@match), class: 'btn-secondary' %>
+      <%= button_to 'Delete Draft', 
+                  match_draft_path(@match, @draft),
+                  method: :delete,
+                  class: 'btn-danger',
+                  data: { turbo_confirm: 'Are you sure?' } %>
     </div>
   </div>
 </div>
