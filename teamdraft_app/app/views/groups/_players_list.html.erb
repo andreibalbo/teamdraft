@@ -1,0 +1,52 @@
+<div class="players-list box flex flex-col gap-6">
+  <div class="flex flex-row justify-between items-center">
+    <span class="subsection-title">Players</span>
+    <%= link_to 'Add New Player', new_group_player_path(@group), class: "btn-primary" %>
+  </div>
+  <div class="hidden lg:block max-h-96 overflow-y-auto">
+    <table>
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Position</th>
+          <th>Attack</th>
+          <th>Defense</th>
+          <th>Stamina</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% @group.players.each do |player| %>
+          <tr>
+            <td><%= player.name %></td>
+            <td>
+              <%= player.positioning %>
+              (<%= player.position %>)
+            </td>
+            <td><%= player.attack %></td>
+            <td><%= player.defense %></td>
+            <td><%= player.stamina %></td>
+            <td>
+              <%= link_to 'View', player_path(player), class: "btn-primary !py-1" %>
+              <%= link_to 'Edit', edit_player_path(player), class: "btn-secondary !py-1" %>
+              <%= link_to 'Delete', player_path(player), 
+                data: { turbo_method: :delete, turbo_confirm: 'Are you sure?' }, 
+                class: "btn-danger !py-1" %>
+            </td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+  </div>
+  <div class="lg:hidden gap-2 flex flex-row flex-wrap justify-start max-h-96 overflow-y-auto" >
+    <% @group.players.each do |player| %>
+      <%= link_to player_path(player), class: "box flex flex-col gap-1 !py-1 px-2 text-center overflow-x-hidden w-30" do %>
+        <div class="text-xs
+           font-bold"><%= player.name %></div>
+        <div class="text-xs text-gray-600">
+          <%= player.position %>
+        </div>
+      <% end %>
+    <% end %>
+  </div>
+</div>

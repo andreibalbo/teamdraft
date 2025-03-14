@@ -32,5 +32,5 @@ Rails.application.routes.draw do
 
   resources :drafts, only: [ :show ]
 
-  root to: "home#index"
+  root to: "groups#index"
 end

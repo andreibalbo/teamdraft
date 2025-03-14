@@ -20,7 +20,8 @@
 
 }
 
-input {
+input,
+select {
     border: 1px solid var(--color-light);
     border-radius: var(--btn-radius);
     padding: var(--btn-padding);
@@ -31,10 +32,61 @@ input {
     }
 }
 
+table {
+    font-size: 0.875rem;
+    border-collapse: separate;
+    border-spacing: 0;
+    width: 100%;
+    border: 1px solid var(--color-light);
+    border-radius: var(--btn-radius);
+    overflow: hidden;
+}
+
+/* Optional: If you want borders between cells */
+th,
+td {
+    text-align: center;
+    padding: 0.5rem;
+    border-bottom: 1px solid var(--color-light);
+    /* border-right: 1px solid var(--color-light); */
+}
+
+th {
+    background-color: var(--color-secondary);
+}
+
+/* Remove extra borders from last elements */
+th:last-child,
+td:last-child {
+    border-right: none;
+}
+
+tr:last-child td {
+    border-bottom: none;
+}
+
 .box {
     border: 1px solid var(--color-light);
     border-radius: var(--btn-radius);
     padding: var(--default-padding);
+}
+
+.labeled-field {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    width: 100%;
+    gap: 0.5rem;
+}
+
+.section-title {
+    font-size: 1.5rem;
+    font-weight: 600;
+}
+
+.subsection-title {
+    font-size: 1.25rem;
+    font-weight: 600;
 }
 
 .btn-primary {
@@ -43,6 +95,7 @@ input {
     padding: var(--btn-padding);
     border-radius: var(--btn-radius);
     cursor: pointer;
+    font-size: 0.875rem;
 }
 
 .btn-primary:hover {
@@ -62,6 +115,7 @@ input {
     border: 1px solid var(--color-secondary);
     border-radius: var(--btn-radius);
     cursor: pointer;
+    font-size: 0.875rem;
 }
 
 .btn-secondary:hover {
@@ -90,4 +144,20 @@ input {
     background-color: var(--btn-disabled-bg);
     color: var(--btn-disabled-color);
     cursor: not-allowed;
+}
+
+.player-dot {
+    max-width: 75px;
+    min-width: 50px;
+    padding: 0.5rem;
+    overflow: hidden;
+    border-radius: 2rem;
+    border: 1px solid var(--color-neutral);
+    background-color: var(--color-primary);
+    color: #FFFFFF;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    transform: translateY(50%);
 }

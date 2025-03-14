@@ -1,0 +1,50 @@
+<div class="box flex flex-col gap-6">
+  <div class="flex flex-row justify-between items-center">
+    <span class="subsection-title">Matches</span>
+    <%= link_to 'New Match', new_group_match_path(@group), class: "btn-primary" %>
+  </div>
+  <% if @group.matches.any? %>
+    <div class="hidden lg:block max-h-96 overflow-y-auto">
+      <table class="table">
+        <thead>
+          <tr>
+            <th>Date</th>
+            <th>Time</th>
+            <th>Players</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% @group.matches.order(datetime: :desc).each do |match| %>
+            <tr>
+              <td><%= match.datetime.strftime("%Y-%m-%d") %></td>
+              <td><%= match.datetime.strftime("%H:%M") %></td>
+              <td><%= match.participations.count %></td>
+              <td>
+                <%= link_to 'View', match_path(match), class: "btn-primary !py-1" %>
+                <%= link_to 'Edit', edit_match_path(match), class: "btn-secondary !py-1" %>
+                <%= link_to 'Delete', match_path(match),
+                  data: { turbo_method: :delete, turbo_confirm: 'Are you sure?' },
+                  class: "btn-danger !py-1" %>
+              </td>
+            </tr>
+          <% end %>
+        </tbody>
+      </table>
+    </div>
+    <div class="lg:hidden gap-2 flex flex-row flex-wrap justify-start max-h-96 overflow-y-auto" >
+      <% @group.matches.each do |match| %>
+        <%= link_to match_path(match), class: "box flex flex-col gap-1 !py-1 px-2 text-center overflow-x-hidden w-30" do %>
+          <div class="text-xs font-bold">
+            <%= match.datetime.strftime("%Y-%m-%d") %>
+          </div>
+          <div class="text-xs text-gray-600">
+            <%= match.datetime.strftime("%H:%M") %>
+          </div>
+        <% end %>
+      <% end %>
+    </div>
+  <% else %>
+    <p class="text-muted">No matches scheduled yet.</p>
+  <% end %>
+</div>

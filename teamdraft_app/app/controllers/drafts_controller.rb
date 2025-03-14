@@ -1,6 +1,4 @@
 class DraftsController < ApplicationController
-  before_action :authenticate_user!
-
   def show
     result = DraftService::Details.new(
       draft_id: params[:id],
@@ -11,6 +9,8 @@ class DraftsController < ApplicationController
       @draft = result[:draft]
       @match = result[:match]
       @group = result[:group]
+      @line_up_a = result[:line_up_a]
+      @line_up_b = result[:line_up_b]
     else
       path = @draft&.match ? match_path(@draft.match) : root_path
       redirect_to path, alert: result[:error]

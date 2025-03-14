@@ -5,7 +5,7 @@ module GroupService
     end
 
     def call
-      groups = @user.groups
+      groups = @user.groups.includes(:players)
       { success: true, groups: groups }
     end
   end

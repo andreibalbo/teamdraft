@@ -1,60 +1,103 @@
-<div class="container mt-4">
-  <div class="row">
-    <div class="col-md-8 offset-md-2">
-      <div class="card">
-        <div class="card-header">
-          <h2>Select Players for Match</h2>
-          <h6 class="text-muted">
-            Group: <%= @group.name %> | 
-            Match: <%= @match.datetime.strftime("%Y-%m-%d %H:%M") %>
-          </h6>
-        </div>
-        <div class="card-body">
-          <%= form_with(url: players_match_path(@match), method: :post) do |f| %>
-            <div class="players-selection">
-              <table class="table">
-                <thead>
-                  <tr>
-                    <th>Select</th>
-                    <th>Name</th>
-                    <th>Position</th>
-                    <th>Attack</th>
-                    <th>Defense</th>
-                    <th>Stamina</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <% @available_players.each do |player| %>
-                    <tr>
-                      <td>
-                        <%= check_box_tag 'player_ids[]', 
-                            player.id, 
-                            @selected_player_ids&.include?(player.id),
-                            id: "player_#{player.id}" %>
-                      </td>
-                      <td>
-                        <%= label_tag "player_#{player.id}", player.name %>
-                      </td>
-                      <td>
-                        <%= player.positioning %>
-                        (<%= player.positioning <= 50 ? 'Defensive' : 'Attacking' %>)
-                      </td>
-                      <td><%= player.attack %></td>
-                      <td><%= player.defense %></td>
-                      <td><%= player.stamina %></td>
-                    </tr>
-                  <% end %>
-                </tbody>
-              </table>
-            </div>
-            <div class="actions mt-3">
-              <%= f.submit "Update Players", class: "btn btn-primary" %>
-              <%= link_to "Back", match_path(@match), class: "btn btn-secondary" %>
-            </div>
-          <% end %>
-        </div>
+<div class="container mt-4 flex flex-col gap-6">
+  <div class="card-header flex flex-col gap-2 justify-start items-start">
+    <span class="section-title">Select Players for Match</span>
+    <div class="flex flex-col gap-2">
+      <div class="flex flex-row gap-2">
+        <span class="font-bold">
+          Group: 
+        </span>
+        <%= @group.name %>
+      </div>
+      <div class="flex flex-row gap-2">
+        <span class="font-bold">
+          Match: 
+        </span>
+        <%= @match.datetime.strftime("%Y-%m-%d %H:%M") %>
       </div>
     </div>
   </div>
+  <%= form_with(url: players_match_path(@match), method: :post, class: "flex flex-col gap-6") do |f| %>
+    <div class="card-body">
+      <div class="players-selection overflow-x-auto">
+        <table class="table">
+          <thead>
+            <tr>
+              <th>
+                <%= check_box_tag 'select_all', 
+                          'select_all', 
+                          false,
+                          onclick: 'toggleAllPlayers(this)' %>
+              </th>
+              <th>
+                <span class="lg:block hidden">Name</span>
+                <span class="lg:hidden">N</span>
+              </th>
+              <th>
+                <span class="lg:block hidden">Position</span>
+                <span class="lg:hidden">POS</span>
+              </th>
+              <th>
+                <span class="lg:block hidden">Attack</span>
+                <span class="lg:hidden">ATK</span>
+              </th>
+              <th>
+                <span class="lg:block hidden">Defense</span>
+                <span class="lg:hidden">DEF</span>
+              </th>
+              <th>
+                <span class="lg:block hidden">Stamina</span>
+                <span class="lg:hidden">STA</span>
+              </th>
+            </tr>
+          </thead>
+          <tbody>
+            <% @available_players.each do |player| %>
+              <tr>
+                <td>
+                  <%= check_box_tag 'player_ids[]', 
+                            player.id, 
+                            @selected_player_ids&.include?(player.id),
+                            class: 'player-checkbox',
+                            id: "player_#{player.id}" %>
+                </td>
+                <td>
+                  <%= label_tag "player_#{player.id}", player.name %>
+                </td>
+                <td>
+                  <span class="lg:block hidden">
+                    <%= player.positioning %>
+                    (<%= player.position %>)
+                  </span>
+                  <span class="lg:hidden">
+                    <%= player.position.slice(0, 2) %>
+                  </span>
+                </td>
+                <td>
+                  <%= player.attack %>
+                </td>
+                <td>
+                  <%= player.defense %>
+                </td>
+                <td>
+                  <%= player.stamina %>
+                </td>
+              </tr>
+            <% end %>
+          </tbody>
+        </table>
+      </div>
+    </div>
+    <div class="actions">
+      <%= f.submit "Update Players", class: "btn btn-primary" %>
+      <%= link_to "Back", match_path(@match), class: "btn btn-secondary" %>
+    </div>
+  <% end %>
 </div>
- 
+<script>
+  function toggleAllPlayers(source) {
+    const checkboxes = document.getElementsByClassName('player-checkbox');
+    for (let checkbox of checkboxes) {
+      checkbox.checked = source.checked;
+    }
+  }
+</script>

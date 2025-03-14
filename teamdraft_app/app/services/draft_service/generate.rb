@@ -1,5 +1,7 @@
 module DraftService
   class Generate
+    ATTEMPTS = 5
+
     def initialize(match_id:, user:)
       @match_id = match_id
       @current_user = user
@@ -12,25 +14,13 @@ module DraftService
       group = @current_user.managed_groups.find_by(id: match.group_id)
       return { success: false, error: "Access denied" } unless group
 
-      # Get all players and shuffle them randomly
-      players = match.players.to_a.shuffle
-      mid_point = (players.length / 2.0).ceil
+      best_draft = generate_best_draft(match)
 
-      # Split into two teams
-      team_a = players[0...mid_point]
-      team_b = players[mid_point..]
-
-      draft = match.drafts.build(
-        team_a_player_ids: team_a.map(&:id),
-        team_b_player_ids: team_b.map(&:id),
-        balance_score: calculate_balance_score(team_a, team_b)
-      )
-
-      if draft.save
+      if best_draft.save
         {
           success: true,
           match: match,
-          draft: draft,
+          draft: best_draft,
           group: group
         }
       else
@@ -44,6 +34,36 @@ module DraftService
     end
 
     private
+
+      def generate_best_draft(match)
+        best_score = 0
+        best_draft = nil
+
+        ATTEMPTS.times do
+          # Get all players and shuffle them randomly
+          players = match.players.to_a.shuffle
+          mid_point = (players.length / 2.0).ceil
+
+          # Split into two teams
+          team_a = players[0...mid_point]
+          team_b = players[mid_point..]
+
+          # Calculate balance score for this attempt
+          score = calculate_balance_score(team_a, team_b)
+
+          # Keep track of the best (lowest) score
+          if score > best_score
+            best_score = score
+            best_draft = match.drafts.build(
+              team_a_player_ids: team_a.map(&:id),
+              team_b_player_ids: team_b.map(&:id),
+              balance_score: score
+            )
+          end
+        end
+
+        best_draft
+      end
 
       def calculate_balance_score(team_a, team_b)
         # Simple initial balance score calculation
@@ -61,8 +81,8 @@ module DraftService
         defense_diff = ((a_defense - b_defense).abs / [ a_defense, b_defense ].max.to_f)
         stamina_diff = ((a_stamina - b_stamina).abs / [ a_stamina, b_stamina ].max.to_f)
 
-        # Average the differences (lower is better)
-        (attack_diff + defense_diff + stamina_diff) / 3.0
+        # Average the differences and invert the result
+        1 - ((attack_diff + defense_diff + stamina_diff) / 3.0)
       end
   end
 end

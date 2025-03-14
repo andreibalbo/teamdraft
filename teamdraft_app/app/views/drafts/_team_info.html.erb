@@ -1,0 +1,72 @@
+<div class="team-section">
+  <span class="subsection-title"><%= title %></span>
+  <div class="team-stats small text-muted mb-2">
+    <span>ATK: <%= stats[:attack] %></span> |
+    <span>DEF: <%= stats[:defense] %></span> |
+    <span>STA: <%= stats[:stamina] %></span> |
+    <span>POS: <%= stats[:positioning] %></span>
+  </div>
+  <div class="flex flex-col lg:flex-row gap-6 w-full">
+    <table class="table flex-1">
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>POS</th>
+          <th>ATK</th>
+          <th>DEF</th>
+          <th>STA</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% players.each do |player| %>
+          <tr>
+            <td><%= player.name %></td>
+            <td><%= player.position %></td>
+            <td><%= player.attack %></td>
+            <td><%= player.defense %></td>
+            <td><%= player.stamina %></td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+    <div class="min-w-[300px] min-h-[300px]">
+      <div class="relative lg:h-full h-[400px]">
+        <%# Soccer field background %>
+        <div class="absolute inset-0 bg-fill bg-[length:100%_100%] bg-no-repeat" 
+         style="background-image: url('<%= asset_path('soccer_court.png') %>');">
+          <% defensive, midfield, attacking = line_up[:formation] %>
+          <%# goalkeeper %>
+          <div class="absolute bottom-[22px] w-full flex justify-around">
+            <div class="player-dot">
+              <span class="text-xs text-wrap">GK</span>
+            </div>
+          </div>
+          <%# Defensive players row %>
+          <div class="absolute bottom-[30%] w-full flex justify-around">
+            <% defensive.each do |player| %>
+              <div class="player-dot">
+                <span class="text-xs text-wrap"><%= player.name %></span>
+              </div>
+            <% end %>
+          </div>
+          <%# Midfield players row %>
+          <div class="absolute bottom-[55%] w-full flex justify-around">
+            <% midfield.each do |player| %>
+              <div class="player-dot">
+                <span class="text-xs text-wrap"><%= player.name %></span>
+              </div>
+            <% end %>
+          </div>
+          <%# Attacking players row %>
+          <div class="absolute bottom-[80%] w-full flex justify-around">
+            <% attacking.each do |player| %>
+              <div class="player-dot">
+                <span class="text-xs text-wrap"><%= player.name %></span>
+              </div>
+            <% end %>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
