@@ -38,6 +38,7 @@
                 <div class="flex lg:flex-row flex-col gap-2">
                   <%= link_to 'View', draft_path(draft), class: 'btn-primary !py-1 !px-2' %>
                   <%= button_to 'Delete', 
+
                               match_draft_path(@match, draft),
                               method: :delete,
                               class: 'btn-danger !py-1 !px-2',
