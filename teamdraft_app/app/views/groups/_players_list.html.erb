@@ -38,7 +38,7 @@
       </tbody>
     </table>
   </div>
-  <div class="lg:hidden gap-2 flex flex-row flex-wrap justify-start max-h-96 overflow-y-auto" >
+  <div class="lg:hidden gap-2 flex flex-row flex-wrap justify-center max-h-96 overflow-y-auto" >
     <% @group.players.each do |player| %>
       <%= link_to player_path(player), class: "box flex flex-col gap-1 !py-1 px-2 text-center overflow-x-hidden w-30" do %>
         <div class="text-xs
