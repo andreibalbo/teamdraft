@@ -1,26 +1,28 @@
 <div class="container flex flex-col gap-6">
-  <div class="box gap-6 flex flex-col">
-    <div class="flex flex-col lg:flex-row justify-between items-center">
-      <span class="section-title">Draft #<%= @draft.id %></span>
-      <span class="flex flex-row gap-2">
-        <span class="font-bold">
-          Balance Score: 
+  <div class="box gap-6 flex flex-col w-full">
+    <div class="flex flex-col lg:flex-row gap-4 lg:justify-between justify-start items-center w-full relative">
+      <div class="flex flex-col items-start w-full lg:w-1/2">
+        <span class="section-title">Draft #<%= @draft.id %></span>
+        <span class="flex flex-row gap-2">
+          <span class="font-bold">
+            Balance Score: 
+          </span>
+          <%= number_to_percentage(@draft.balance_score * 100, precision: 1) %>
         </span>
-        <%= number_to_percentage(@draft.balance_score * 100, precision: 1) %>
-      </span>
-    </div>
-    <div class="flex flex-col gap-2">
-      <div class="flex flex-row gap-2">
-        <span class="font-bold">
-          Group: 
-        </span>
-        <%= @group.name %>
       </div>
-      <div class="flex flex-row gap-2">
-        <span class="font-bold">
-          Match: 
-        </span>
-        <%= @match.datetime.strftime("%Y-%m-%d %H:%M") %>
+      <div class="flex flex-col items-start gap-2 w-full lg:w-1/2">
+        <div class="flex flex-row gap-2">
+          <span class="font-bold">
+            Group: 
+          </span>
+          <%= @group.name %>
+        </div>
+        <div class="flex flex-row gap-2">
+          <span class="font-bold">
+            Match: 
+          </span>
+          <%= @match.datetime.strftime("%Y-%m-%d %H:%M") %>
+        </div>
       </div>
     </div>
   </div>

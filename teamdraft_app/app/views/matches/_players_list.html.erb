@@ -16,7 +16,7 @@
           </tr>
         </thead>
         <tbody>
-          <% @group.players.each do |player| %>
+          <% @match.players.each do |player| %>
             <tr>
               <td><%= player.name %></td>
               <td>
@@ -31,8 +31,8 @@
         </tbody>
       </table>
     </div>
-    <div class="lg:hidden gap-2 flex flex-row flex-wrap justify-start max-h-96 overflow-y-auto" >
-      <% @group.players.each do |player| %>
+    <div class="lg:hidden gap-2 flex flex-row flex-wrap justify-between max-h-96 overflow-y-auto" >
+      <% @match.players.each do |player| %>
         <div class="box flex flex-col gap-1 !py-1 px-2 text-center overflow-x-hidden w-30">
           <div class="text-xs font-bold"><%= player.name %></div>
           <div class="text-xs text-gray-600">
