@@ -25,10 +25,10 @@
     </div>
   </div>
   <div class="flex flex-col gap-6 border-t border-light pt-6">
-    <%= render 'team_info', players: @draft.team_a_players, stats: @draft.team_a_stats, title: 'Team A' %>
+    <%= render 'team_info', players: @draft.team_a_players, stats: @draft.team_a_stats, title: 'Team A', line_up: @line_up_a %>
   </div>
   <div class="flex flex-col gap-6 border-t border-light pt-6">
-    <%= render 'team_info', players: @draft.team_b_players, stats: @draft.team_b_stats, title: 'Team B' %>
+    <%= render 'team_info', players: @draft.team_b_players, stats: @draft.team_b_stats, title: 'Team B', line_up: @line_up_b %>
   </div>
   <div class="team-differences small text-muted mt-4 hidden">
     <% diff = @draft.team_stats_difference %>

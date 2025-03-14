@@ -34,28 +34,28 @@
         <%# Soccer field background %>
         <div class="absolute inset-0 bg-cover bg-center bg-no-repeat" 
          style="background-image: url('<%= asset_path('soccer_court.png') %>');">
-          <% defensive, midfield, attacking = @draft.divide_team_players(players) %>
+          <% defensive, midfield, attacking = line_up[:formation] %>
           <%# Defensive players row %>
           <div class="absolute bottom-[20%] w-full flex justify-around">
             <% defensive.each do |player| %>
-              <div class="player-dot bg-blue-500 text-white">
-                <span class="text-xs"><%= player.name.first %></span>
+              <div class="player-dot">
+                <span class="text-xs text-wrap"><%= player.name %></span>
               </div>
             <% end %>
           </div>
           <%# Midfield players row %>
           <div class="absolute bottom-[50%] w-full flex justify-around">
             <% midfield.each do |player| %>
-              <div class="player-dot bg-blue-500 text-white">
-                <span class="text-xs"><%= player.name.first %></span>
+              <div class="player-dot">
+                <span class="text-xs text-wrap"><%= player.name %></span>
               </div>
             <% end %>
           </div>
           <%# Attacking players row %>
           <div class="absolute bottom-[80%] w-full flex justify-around">
             <% attacking.each do |player| %>
-              <div class="player-dot bg-blue-500 text-white">
-                <span class="text-xs"><%= player.name.first %></span>
+              <div class="player-dot">
+                <span class="text-xs text-wrap"><%= player.name %></span>
               </div>
             <% end %>
           </div>
