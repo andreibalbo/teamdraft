@@ -166,11 +166,11 @@ tr:last-child td {
     }
 
     &.midfield {
-        background-color: #0000ff;
+        background-color: #3366cc;
     }
 
     &.attack {
-        background-color: #0066ff;
+        background-color: #006699;
     }
 
 }
