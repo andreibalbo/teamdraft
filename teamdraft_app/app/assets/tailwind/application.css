@@ -153,11 +153,29 @@ tr:last-child td {
     overflow: hidden;
     border-radius: 2rem;
     border: 1px solid var(--color-neutral);
-    background-color: var(--color-primary);
     color: #FFFFFF;
     display: flex;
     align-items: center;
     justify-content: center;
     position: relative;
     transform: translateY(50%);
+    background-color: #000099;
+
+    &.defense {
+        background-color: #6600ff;
+    }
+
+    &.midfield {
+        background-color: #3366cc;
+    }
+
+    &.attack {
+        background-color: #006699;
+    }
+
+}
+
+.soccer-court {
+    border: 1px solid var(--color-light);
+    border-radius: var(--btn-radius);
 }
