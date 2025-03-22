@@ -72,12 +72,22 @@ class GeneticAlgorithm:
 
     def calculate_balance_score(self, stats_a, stats_b):
         diffs = []
-        for stat in ['positioning', 'attack', 'defense', 'stamina']:
+        weights = {
+            'positioning': 2.0,  # Double weight for positioning
+            'attack': 1.0,
+            'defense': 1.0,
+            'stamina': 1.0
+        }
+        
+        weighted_sum = 0
+        total_weight = sum(weights.values())
+        
+        for stat, weight in weights.items():
             max_stat = max(stats_a[stat], stats_b[stat]) or 1
             diff = abs(stats_a[stat] - stats_b[stat]) / max_stat
-            diffs.append(diff)
+            weighted_sum += diff * weight
         
-        return 1 - (sum(diffs) / 4.0)
+        return 1 - (weighted_sum / total_weight)
 
     def balance_teams(self):
         pop = self.toolbox.population(n=self.population_size)
