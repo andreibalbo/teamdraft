@@ -1,10 +1,11 @@
-# Use Python 3.10 as the base image
-FROM python:3.10
+FROM python:3.9-slim
 
-# Set working directory
 WORKDIR /app
 
-RUN pip install --upgrade pip
-# RUN pip install -r requirements.txt
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
 
-CMD ["python", "main.py"]
+COPY . .
+
+EXPOSE 5000
+CMD ["python", "src/api.py"]
