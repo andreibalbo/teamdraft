@@ -11,6 +11,15 @@ RSpec.describe "Generate Match Draft", type: :system do
     # Add players to match
     players.each { |player| create(:participation, match: match, player: player) }
     login_as(user)
+    allow_any_instance_of(Clients::EngineApi).to receive(:generate_teams).and_return(
+      {
+        "team_a" =>
+          players[0..2].map { |p| JSON.parse(p.to_json) },
+        "team_b" =>
+          players[3..5].map { |p| JSON.parse(p.to_json) },
+        "balance_score" => 10
+      }
+    )
   end
 
   it "generates and shows draft details" do

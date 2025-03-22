@@ -53,20 +53,14 @@ module DraftService
           }
         }
 
-        response = HTTParty.post("http://engine:5000/generate_teams",
-          body: { players: json_players }.to_json,
-          headers: { "Content-Type" => "application/json" }
-        )
-
-        parsed_response = JSON.parse(response.body)
+        response = Clients::EngineApi.new.generate_teams(json_players)
 
         match.drafts.build(
-          team_a_player_ids: parsed_response["team_a"].map { |p| p["id"] },
-          team_b_player_ids: parsed_response["team_b"].map { |p| p["id"] },
-          balance_score: parsed_response["balance_score"]
+          team_a_player_ids: response["team_a"].map { |p| p["id"] },
+          team_b_player_ids: response["team_b"].map { |p| p["id"] },
+          balance_score: response["balance_score"]
         )
       end
-
 
       def generate_best_draft(match)
         best_score = 0

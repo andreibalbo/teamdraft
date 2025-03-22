@@ -20,7 +20,8 @@ class DraftsController < ApplicationController
   def generate
     result = DraftService::Generate.new(
       match_id: params[:match_id],
-      user: current_user
+      user: current_user,
+      algorithm: params[:algorithm]
     ).call
 
     if result[:success]

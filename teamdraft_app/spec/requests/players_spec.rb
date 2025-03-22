@@ -50,7 +50,7 @@ RSpec.describe "Players", type: :request do
           post group_players_path(group), params: valid_params
         }.to change(Player, :count).by(1)
 
-        expect(response).to redirect_to(player_path(Player.last))
+        expect(response).to redirect_to(group_path(group))
       end
     end
 
@@ -78,7 +78,7 @@ RSpec.describe "Players", type: :request do
         patch player_path(player), params: { player: { name: "Updated Name" } }
 
         expect(player.reload.name).to eq("Updated Name")
-        expect(response).to redirect_to(player_path(player))
+        expect(response).to redirect_to(group_path(group))
       end
     end
 
@@ -97,7 +97,7 @@ RSpec.describe "Players", type: :request do
         delete player_path(player)
       }.to change(Player, :count).by(-1)
 
-      expect(response).to redirect_to(group_players_path(group))
+      expect(response).to redirect_to(group_path(group))
     end
   end
 end
