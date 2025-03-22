@@ -7,8 +7,8 @@ app = Flask(__name__)
 def health_check():
     return jsonify({"status": "healthy"})
 
-@app.route('/generate_teams', methods=['POST'])
-def generate_teams():
+@app.route('/genetic_draft', methods=['POST'])
+def genetic_draft():
     try:
         data = request.get_json()
         players = data['players']

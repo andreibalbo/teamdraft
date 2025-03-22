@@ -53,7 +53,7 @@ module DraftService
           }
         }
 
-        response = Clients::EngineApi.new.generate_teams(json_players)
+        response = Clients::EngineApi.new.genetic_draft(json_players)
 
         match.drafts.build(
           team_a_player_ids: response["team_a"].map { |p| p["id"] },

@@ -31,7 +31,7 @@ Each player has the following attributes:
 
 ### API Endpoints
 
-1. POST /generate_teams
+1. POST /genetic_draft
 
 Request body example:
 ```json

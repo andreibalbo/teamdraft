@@ -16,7 +16,7 @@ RSpec.describe "Drafts", type: :request do
 
   describe "POST /matches/:match_id/drafts/generate" do
     it "generates a new draft" do
-      allow_any_instance_of(Clients::EngineApi).to receive(:generate_teams).and_return(
+      allow_any_instance_of(Clients::EngineApi).to receive(:genetic_draft).and_return(
         {
           "team_a" => players[0..1].map { |p| JSON.parse(p.to_json) },
           "team_b" => players[2..3].map { |p| JSON.parse(p.to_json) },
@@ -33,7 +33,7 @@ RSpec.describe "Drafts", type: :request do
     end
 
     it "does not use genetic algorithm if passing another parameter" do
-      allow_any_instance_of(Clients::EngineApi).to receive(:generate_teams).and_return({ status: "error" })
+      allow_any_instance_of(Clients::EngineApi).to receive(:genetic_draft).and_return({ status: "error" })
       expect {
         post generate_match_drafts_path(match, algorithm: "random")
       }.to change(Draft, :count).by(1)

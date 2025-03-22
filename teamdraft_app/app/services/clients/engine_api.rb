@@ -1,10 +1,11 @@
 module Clients
   class EngineApi
     def initialize
+      @base_url = "http://engine:5000"
     end
 
-    def generate_teams(players)
-      response = HTTParty.post("http://engine:5000/generate_teams",
+    def genetic_draft(players)
+      response = HTTParty.post("#{@base_url}/genetic_draft",
         body: { players: players }.to_json,
         headers: { "Content-Type" => "application/json" }
       )

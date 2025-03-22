@@ -11,7 +11,7 @@ RSpec.describe "Generate Match Draft", type: :system do
     # Add players to match
     players.each { |player| create(:participation, match: match, player: player) }
     login_as(user)
-    allow_any_instance_of(Clients::EngineApi).to receive(:generate_teams).and_return(
+    allow_any_instance_of(Clients::EngineApi).to receive(:genetic_draft).and_return(
       {
         "team_a" =>
           players[0..2].map { |p| JSON.parse(p.to_json) },
