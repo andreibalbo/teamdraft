@@ -14,7 +14,9 @@ module DraftService
       group = @current_user.managed_groups.find_by(id: match.group_id)
       return { success: false, error: "Access denied" } unless group
 
-      best_draft = generate_best_draft(match)
+      # best_draft = generate_best_draft(match)
+
+      best_draft = genetic_draft(match)
 
       if best_draft.save
         {
@@ -34,6 +36,32 @@ module DraftService
     end
 
     private
+
+      def genetic_draft(match)
+        json_players = match.players.map { |p|
+          {
+            id: p.id,
+            positioning: p.positioning,
+            attack: p.attack,
+            defense: p.defense,
+            stamina: p.stamina
+          }
+        }
+
+        response = HTTParty.post("http://engine:5000/generate_teams",
+          body: { players: json_players }.to_json,
+          headers: { "Content-Type" => "application/json" }
+        )
+
+        parsed_response = JSON.parse(response.body)
+
+        match.drafts.build(
+          team_a_player_ids: parsed_response["team_a"].map { |p| p["id"] },
+          team_b_player_ids: parsed_response["team_b"].map { |p| p["id"] },
+          balance_score: parsed_response["balance_score"]
+        )
+      end
+
 
       def generate_best_draft(match)
         best_score = 0
