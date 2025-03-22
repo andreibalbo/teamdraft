@@ -2,9 +2,10 @@ module DraftService
   class Generate
     ATTEMPTS = 5
 
-    def initialize(match_id:, user:)
+    def initialize(match_id:, user:, algorithm: "genetic")
       @match_id = match_id
       @current_user = user
+      @algorithm = algorithm
     end
 
     def call
@@ -14,7 +15,7 @@ module DraftService
       group = @current_user.managed_groups.find_by(id: match.group_id)
       return { success: false, error: "Access denied" } unless group
 
-      best_draft = generate_best_draft(match)
+      best_draft = call_engine(@algorithm, match)
 
       if best_draft.save
         {
@@ -34,6 +35,32 @@ module DraftService
     end
 
     private
+
+      def call_engine(algorithm, match)
+        return genetic_draft(match) if algorithm == "genetic"
+
+        generate_best_draft(match)
+      end
+
+      def genetic_draft(match)
+        json_players = match.players.map { |p|
+          {
+            id: p.id,
+            positioning: p.positioning,
+            attack: p.attack,
+            defense: p.defense,
+            stamina: p.stamina
+          }
+        }
+
+        response = Clients::EngineApi.new.genetic_draft(json_players)
+
+        match.drafts.build(
+          team_a_player_ids: response["team_a"].map { |p| p["id"] },
+          team_b_player_ids: response["team_b"].map { |p| p["id"] },
+          balance_score: response["balance_score"]
+        )
+      end
 
       def generate_best_draft(match)
         best_score = 0

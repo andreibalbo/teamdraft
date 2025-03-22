@@ -49,7 +49,7 @@ class PlayersController < ApplicationController
     ).call
 
     if result[:success]
-      redirect_to player_path(result[:player]), notice: "Player was successfully created."
+      redirect_to group_path(result[:group]), notice: "Player was successfully created."
     else
       @player = result[:player]
       @group = result[:group]
@@ -79,7 +79,7 @@ class PlayersController < ApplicationController
     ).call
 
     if result[:success]
-      redirect_to player_path(result[:player]), notice: "Player was successfully updated."
+      redirect_to group_path(result[:group]), notice: "Player was successfully updated."
     else
       @player = result[:player]
       @group = result[:group]
@@ -94,7 +94,7 @@ class PlayersController < ApplicationController
     ).call
 
     if result[:success]
-      redirect_to group_players_path(result[:group]), notice: "Player was successfully deleted."
+      redirect_to group_path(result[:group]), notice: "Player was successfully deleted."
     else
       redirect_to groups_path, alert: result[:error]
     end
