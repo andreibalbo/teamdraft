@@ -14,7 +14,7 @@ Setup the container in sleep mode:
 docker-compose up -d
 ```
 
-Note this will cause the app container to start sleeping and the engine container to run the API application.
+Note: this will cause the app container to start sleeping and the engine container to run the API application.
 
 Enter the app container:
 ```bash
