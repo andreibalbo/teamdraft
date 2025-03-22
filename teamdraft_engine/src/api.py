@@ -1,5 +1,5 @@
 from flask import Flask, request, jsonify
-from genetic_algorithm import TeamBalancer
+from genetic_algorithm import GeneticAlgorithm
 
 app = Flask(__name__)
 
@@ -13,13 +13,16 @@ def generate_teams():
         data = request.get_json()
         players = data['players']
         
-        balancer = TeamBalancer(players)
-        team_a, team_b = balancer.balance_teams()
+        # We can add other algorithms here and select which one to use
+        balancer = GeneticAlgorithm(players)
+
+        team_a, team_b, score = balancer.balance_teams()
         
         return jsonify({
             'success': True,
             'team_a': team_a,
-            'team_b': team_b
+            'team_b': team_b,
+            'balance_score': score
         })
     except Exception as e:
         return jsonify({

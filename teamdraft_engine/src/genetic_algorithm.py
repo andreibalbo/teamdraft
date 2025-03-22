@@ -2,7 +2,7 @@ import random
 from deap import base, creator, tools, algorithms
 import numpy as np
 
-class TeamBalancer:
+class GeneticAlgorithm:
     def __init__(self, players, population_size=100, generations=50):
         self.players = self._normalize_players(players)
         self.population_size = population_size
@@ -90,5 +90,9 @@ class TeamBalancer:
         
         team_a = [p for i, p in enumerate(self.players) if best_solution[i] == 1]
         team_b = [p for i, p in enumerate(self.players) if best_solution[i] == 0]
+
+        a_stats = self.calculate_team_stats(team_a)
+        b_stats = self.calculate_team_stats(team_b)
+        score = self.calculate_balance_score(a_stats, b_stats)
         
-        return team_a, team_b
+        return team_a, team_b, score
