@@ -21,7 +21,7 @@
         <% players.each do |player| %>
           <tr>
             <td><%= player.name %></td>
-            <td><%= player.position %></td>
+            <td><%= "#{player.positioning} (#{player.slim_position})" %></td>
             <td><%= player.attack %></td>
             <td><%= player.defense %></td>
             <td><%= player.stamina %></td>
