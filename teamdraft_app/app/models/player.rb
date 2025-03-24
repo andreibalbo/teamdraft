@@ -19,4 +19,12 @@ class Player < ApplicationRecord
 
     "Attacking"
   end
+
+  def slim_position
+    return "DEF" if positioning <= 35
+
+    return "MID" if positioning <= 65
+
+    "ATT"
+  end
 end

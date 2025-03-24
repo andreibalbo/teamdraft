@@ -21,7 +21,7 @@ class DraftsController < ApplicationController
     result = DraftService::Generate.new(
       match_id: params[:match_id],
       user: current_user,
-      algorithm: params[:algorithm]
+      algorithm: params[:algorithm] || "genetic"
     ).call
 
     if result[:success]
