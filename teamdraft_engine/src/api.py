@@ -12,9 +12,10 @@ def genetic_draft():
     try:
         data = request.get_json()
         players = data['players']
+        weights = data['weights']
         
         # We can add other algorithms here and select which one to use
-        balancer = GeneticAlgorithm(players)
+        balancer = GeneticAlgorithm(players, weights)
 
         team_a, team_b, score = balancer.balance_teams()
         

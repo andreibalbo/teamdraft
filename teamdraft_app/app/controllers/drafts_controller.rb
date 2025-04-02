@@ -18,10 +18,19 @@ class DraftsController < ApplicationController
   end
 
   def generate
+    @match = Match.find(params[:match_id])
+    weights = params[:weights]&.transform_values(&:to_f) || {
+      positioning: 1.0,
+      attack: 1.0,
+      defense: 1.0,
+      stamina: 1.0
+    }
+
     result = DraftService::Generate.new(
       match_id: params[:match_id],
       user: current_user,
-      algorithm: params[:algorithm] || "genetic"
+      algorithm: params[:algorithm] || "genetic",
+      weights: weights
     ).call
 
     if result[:success]

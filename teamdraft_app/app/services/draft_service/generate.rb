@@ -6,6 +6,7 @@ module DraftService
       @match_id = match_id
       @current_user = user
       @algorithm = algorithm
+      @weights = weights
     end
 
     def call
@@ -15,7 +16,7 @@ module DraftService
       group = @current_user.managed_groups.find_by(id: match.group_id)
       return { success: false, error: "Access denied" } unless group
 
-      best_draft = call_engine(@algorithm, match)
+      best_draft = call_engine(@algorithm, match, @weights)
 
       if best_draft.save
         {
@@ -36,13 +37,13 @@ module DraftService
 
     private
 
-      def call_engine(algorithm, match)
-        return genetic_draft(match) if algorithm == "genetic"
+      def call_engine(algorithm, match, weights)
+        return genetic_draft(match, weights) if algorithm == "genetic"
 
         generate_best_draft(match)
       end
 
-      def genetic_draft(match)
+      def genetic_draft(match, weights)
         json_players = match.players.map { |p|
           {
             id: p.id,
@@ -53,7 +54,7 @@ module DraftService
           }
         }
 
-        response = Clients::EngineApi.new.genetic_draft(json_players)
+        response = Clients::EngineApi.new.genetic_draft(json_players, weights)
 
         match.drafts.build(
           team_a_player_ids: response["team_a"].map { |p| p["id"] },

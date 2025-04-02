@@ -3,10 +3,11 @@ from deap import base, creator, tools, algorithms
 import numpy as np
 
 class GeneticAlgorithm:
-    def __init__(self, players, population_size=100, generations=50):
+    def __init__(self, players, weights, population_size=100, generations=50):
         self.players = self._normalize_players(players)
         self.population_size = population_size
         self.generations = generations
+        self.weights = weights
         self.setup_genetic_algorithm()
     
     def _normalize_players(self, players):
@@ -73,10 +74,10 @@ class GeneticAlgorithm:
     def calculate_balance_score(self, stats_a, stats_b):
         diffs = []
         weighted_stats = {
-            'positioning': 1.0,  # Double weight for positioning
-            'attack': 1.0,
-            'defense': 1.0,
-            'stamina': 1.0
+            'positioning': self.weights['positioning'] or 1,  # Double weight for positioning
+            'attack': self.weights['attack'] or 1,
+            'defense': self.weights['defense'] or 1,
+            'stamina': self.weights['stamina'] or 1
         }
         
         weighted_sum = 0
