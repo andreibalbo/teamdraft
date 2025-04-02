@@ -25,7 +25,7 @@ RSpec.describe "Drafts", type: :request do
       )
 
       expect {
-        post generate_match_drafts_path(match)
+        post generate_match_drafts_path(match, { weights: { positioning: 1, attack: 1, defense: 1, stamina: 1 } })
       }.to change(Draft, :count).by(1)
 
       expect(response).to redirect_to(draft_path(Draft.last))
@@ -35,7 +35,7 @@ RSpec.describe "Drafts", type: :request do
     it "does not use genetic algorithm if passing another parameter" do
       allow_any_instance_of(Clients::EngineApi).to receive(:genetic_draft).and_return({ status: "error" })
       expect {
-        post generate_match_drafts_path(match, algorithm: "random")
+        post generate_match_drafts_path(match, { algorithm: "random", weights: { positioning: 1, attack: 1, defense: 1, stamina: 1 } })
       }.to change(Draft, :count).by(1)
 
       expect(response).to redirect_to(draft_path(Draft.last))
@@ -48,7 +48,7 @@ RSpec.describe "Drafts", type: :request do
 
       it "does not generate draft" do
         expect {
-          post generate_match_drafts_path(match)
+          post generate_match_drafts_path(match, { weights: { positioning: 1, attack: 1, defense: 1, stamina: 1 } })
         }.not_to change(Draft, :count)
 
         expect(response).to redirect_to(match_path(match))

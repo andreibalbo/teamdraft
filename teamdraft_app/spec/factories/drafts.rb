@@ -4,6 +4,7 @@ FactoryBot.define do
     balance_score { rand(0.0..1.0) }
     team_a_player_ids { [] }
     team_b_player_ids { [] }
+    weights { { positioning: 1, attack: 1, defense: 1, stamina: 1 } }
 
     trait :with_teams do
       after(:build) do |draft|

@@ -59,7 +59,8 @@ module DraftService
         match.drafts.build(
           team_a_player_ids: (response["team_a"] || []).map { |p| p["id"] },
           team_b_player_ids: (response["team_b"] || []).map { |p| p["id"] },
-          balance_score: response["balance_score"]
+          balance_score: response["balance_score"],
+          weights: weights
         )
       end
 
@@ -85,7 +86,13 @@ module DraftService
             best_draft = match.drafts.build(
               team_a_player_ids: team_a.map(&:id),
               team_b_player_ids: team_b.map(&:id),
-              balance_score: score
+              balance_score: score,
+              weights: {
+                positioning: 1,
+                attack: 1,
+                defense: 1,
+                stamina: 1
+              }
             )
           end
         end

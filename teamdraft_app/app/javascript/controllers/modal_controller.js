@@ -6,7 +6,6 @@ export default class extends Controller {
     }
 
     setupModalListeners() {
-        console.log('setupModalListeners')
         document.querySelectorAll('[data-modal-target]').forEach(button => {
             button.addEventListener('click', () => {
                 const modalId = button.getAttribute('data-modal-target')
@@ -33,4 +32,4 @@ export default class extends Controller {
             })
         })
     }
-} 
+}
