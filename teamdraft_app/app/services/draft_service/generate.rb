@@ -2,7 +2,7 @@ module DraftService
   class Generate
     ATTEMPTS = 5
 
-    def initialize(match_id:, user:, algorithm: "genetic")
+    def initialize(match_id:, user:, algorithm: "genetic", weights: {})
       @match_id = match_id
       @current_user = user
       @algorithm = algorithm
@@ -57,8 +57,8 @@ module DraftService
         response = Clients::EngineApi.new.genetic_draft(json_players, weights)
 
         match.drafts.build(
-          team_a_player_ids: response["team_a"].map { |p| p["id"] },
-          team_b_player_ids: response["team_b"].map { |p| p["id"] },
+          team_a_player_ids: (response["team_a"] || []).map { |p| p["id"] },
+          team_b_player_ids: (response["team_b"] || []).map { |p| p["id"] },
           balance_score: response["balance_score"]
         )
       end

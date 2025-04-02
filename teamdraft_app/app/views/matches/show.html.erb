@@ -13,10 +13,9 @@
   <div class="box flex flex-col gap-6">
     <div class="flex flex-row justify-between items-center">
       <span class="subsection-title">Team Drafts (<%= @match.drafts.count %>)</span>
-      <%= button_to 'Generate New Draft', 
-                    generate_match_drafts_path(@match), 
-                    class: 'btn-primary !py-1 !px-2',
-                    data: { turbo: false } %>
+      <button data-controller="modal" data-modal-target="draft-weights-modal" class="btn-primary !py-1 !px-2">
+        Generate New Draft
+      </button>
     </div>
     <% if @match.drafts.any? %>
       <table class="table">
@@ -38,7 +37,6 @@
                 <div class="flex lg:flex-row flex-col gap-2">
                   <%= link_to 'View', draft_path(draft), class: 'btn-primary !py-1 !px-2' %>
                   <%= button_to 'Delete', 
-
                               match_draft_path(@match, draft),
                               method: :delete,
                               class: 'btn-danger !py-1 !px-2',
@@ -54,3 +52,4 @@
     <% end %>
   </div>
 </div>
+<%= render 'draft_weights_modal', match: @match %>
