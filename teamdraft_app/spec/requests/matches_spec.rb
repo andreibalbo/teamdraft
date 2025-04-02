@@ -93,7 +93,7 @@ RSpec.describe "Matches", type: :request do
         delete match_path(match)
       }.to change(Match, :count).by(-1)
 
-      expect(response).to redirect_to(group_matches_path(group))
+      expect(response).to redirect_to(group_path(group))
     end
   end
 
