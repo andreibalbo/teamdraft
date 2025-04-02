@@ -94,7 +94,7 @@ class MatchesController < ApplicationController
     ).call
 
     if result[:success]
-      redirect_to group_matches_path(result[:group]), notice: "Match was successfully deleted."
+      redirect_to group_path(result[:group]), notice: "Match was successfully deleted."
     else
       redirect_to groups_path, alert: result[:error]
     end

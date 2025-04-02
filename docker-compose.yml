@@ -20,15 +20,18 @@ services:
       - RAILS_ENV=development
     depends_on:
       - db
+      - engine
 
-  # engine:
-  #   build:
-  #     context: ./teamdraft_engine
-  #     dockerfile: Dockerfile
-  #   container_name: engine
-  #   command: sleep infinity
-  #   volumes:
-  #     - ./teamdraft_engine:/app
+  engine:
+    build:
+      context: ./teamdraft_engine
+      dockerfile: Dockerfile
+    container_name: engine
+    # command: sleep infinity
+    volumes:
+      - ./teamdraft_engine:/app
+    ports:
+      - "5000:5000"
   db:
     image: postgres:15
     volumes:

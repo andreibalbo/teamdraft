@@ -29,6 +29,10 @@ RSpec.describe "Generate Match Draft", type: :system do
 
     click_button "Generate New Draft"
 
+    expect(page).to have_content("Draft Generation Weights")
+
+    click_button "Generate"
+
     expect(page).to have_current_path(draft_path(Draft.last))
     expect(page).to have_content("Draft #")
     expect(page).to have_content("Balance Score:")
@@ -57,7 +61,7 @@ RSpec.describe "Generate Match Draft", type: :system do
   it "allows deleting drafts" do
     visit match_path(match)
     click_button "Generate New Draft"
-
+    click_button "Generate"
     expect {
       click_button "Delete Draft"
     }.to change(Draft, :count).by(-1)

@@ -9,8 +9,6 @@
           </span>
           <%= number_to_percentage(@draft.balance_score * 100, precision: 1) %>
         </span>
-      </div>
-      <div class="flex flex-col items-start gap-2 w-full lg:w-1/2">
         <div class="flex flex-row gap-2">
           <span class="font-bold">
             Group: 
@@ -22,6 +20,27 @@
             Match: 
           </span>
           <%= @match.datetime.strftime("%Y-%m-%d %H:%M") %>
+        </div>
+      </div>
+      <div class="flex flex-col items-start w-full lg:w-1/2">
+        <span class="font-bold">
+          Weights: 
+        </span>
+        <div class="flex flex-row gap-2">
+          Positioning: 
+          <%= @draft.weights["positioning"] %>
+        </div>
+        <div class="flex flex-row gap-2">
+          Attack: 
+          <%= @draft.weights["attack"] %>
+        </div>
+        <div class="flex flex-row gap-2">
+          Defense: 
+          <%= @draft.weights["defense"] %>
+        </div>
+        <div class="flex flex-row gap-2">
+          Stamina: 
+          <%= @draft.weights["stamina"] %>
         </div>
       </div>
     </div>

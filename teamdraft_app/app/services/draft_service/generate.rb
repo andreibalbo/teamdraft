@@ -2,10 +2,11 @@ module DraftService
   class Generate
     ATTEMPTS = 5
 
-    def initialize(match_id:, user:, algorithm: "genetic")
+    def initialize(match_id:, user:, algorithm: "genetic", weights: {})
       @match_id = match_id
       @current_user = user
       @algorithm = algorithm
+      @weights = weights
     end
 
     def call
@@ -15,7 +16,7 @@ module DraftService
       group = @current_user.managed_groups.find_by(id: match.group_id)
       return { success: false, error: "Access denied" } unless group
 
-      best_draft = call_engine(@algorithm, match)
+      best_draft = call_engine(@algorithm, match, @weights)
 
       if best_draft.save
         {
@@ -36,13 +37,13 @@ module DraftService
 
     private
 
-      def call_engine(algorithm, match)
-        return genetic_draft(match) if algorithm == "genetic"
+      def call_engine(algorithm, match, weights)
+        return genetic_draft(match, weights) if algorithm == "genetic"
 
         generate_best_draft(match)
       end
 
-      def genetic_draft(match)
+      def genetic_draft(match, weights)
         json_players = match.players.map { |p|
           {
             id: p.id,
@@ -53,12 +54,13 @@ module DraftService
           }
         }
 
-        response = Clients::EngineApi.new.genetic_draft(json_players)
+        response = Clients::EngineApi.new.genetic_draft(json_players, weights)
 
         match.drafts.build(
-          team_a_player_ids: response["team_a"].map { |p| p["id"] },
-          team_b_player_ids: response["team_b"].map { |p| p["id"] },
-          balance_score: response["balance_score"]
+          team_a_player_ids: (response["team_a"] || []).map { |p| p["id"] },
+          team_b_player_ids: (response["team_b"] || []).map { |p| p["id"] },
+          balance_score: response["balance_score"],
+          weights: weights
         )
       end
 
@@ -84,7 +86,13 @@ module DraftService
             best_draft = match.drafts.build(
               team_a_player_ids: team_a.map(&:id),
               team_b_player_ids: team_b.map(&:id),
-              balance_score: score
+              balance_score: score,
+              weights: {
+                positioning: 1,
+                attack: 1,
+                defense: 1,
+                stamina: 1
+              }
             )
           end
         end

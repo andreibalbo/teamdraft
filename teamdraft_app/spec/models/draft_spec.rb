@@ -41,6 +41,23 @@ RSpec.describe Draft, type: :model do
       expect(draft).not_to be_valid
       expect(draft.errors[:base]).to include("Players cannot be in both teams")
     end
+
+    it 'validates weights are valid' do
+      draft = build(:draft, weights: { positioning: 1, attack: 1, defense: 1, stamina: 1 })
+      expect(draft).to be_valid
+    end
+
+    it 'validates weights keys are present' do
+      draft = build(:draft, weights: { positioning: 1, attack: 1, defense: 1 })
+      expect(draft).not_to be_valid
+      expect(draft.errors[:base]).to include("Weights must be a valid set of weights")
+    end
+
+    it 'validates weights values are valid' do
+      draft = build(:draft, weights: { positioning: 1, attack: 1, defense: 1, stamina: "invalid" })
+      expect(draft).not_to be_valid
+      expect(draft.errors[:base]).to include("Weights must be valid numbers")
+    end
   end
 
   describe '#team_stats' do

@@ -4,9 +4,9 @@ module Clients
       @base_url = "http://engine:5000"
     end
 
-    def genetic_draft(players)
+    def genetic_draft(players, weights)
       response = HTTParty.post("#{@base_url}/genetic_draft",
-        body: { players: players }.to_json,
+        body: { players: players, weights: weights }.to_json,
         headers: { "Content-Type" => "application/json" }
       )
 
