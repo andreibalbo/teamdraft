@@ -3,7 +3,7 @@ from deap import base, creator, tools, algorithms
 import numpy as np
 
 class GeneticAlgorithm:
-    def __init__(self, players, weights, population_size=100, generations=50):
+    def __init__(self, players, weights, population_size=200, generations=100):
         self.players = self._normalize_players(players)
         self.population_size = population_size
         self.generations = generations
