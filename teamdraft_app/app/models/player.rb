@@ -1,4 +1,10 @@
 class Player < ApplicationRecord
+  POSITION_RANGES = {
+    defensive: 0..35,
+    midfield: 36..65,
+    attacking: 66..100
+  }
+
   belongs_to :group
   has_many :participations, dependent: :destroy
   has_many :matches, through: :participations
@@ -13,18 +19,10 @@ class Player < ApplicationRecord
     }
 
   def position
-    return "Defensive" if positioning <= 35
-
-    return "Midfield" if positioning <= 65
-
-    "Attacking"
+    POSITION_RANGES.find { |_, range| range.include?(positioning) }&.first || :unknown
   end
 
   def slim_position
-    return "DEF" if positioning <= 35
-
-    return "MID" if positioning <= 65
-
-    "ATT"
+    position.slice(0, 3).upcase
   end
 end
