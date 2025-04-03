@@ -1,6 +1,11 @@
 module DraftService
   module Algorithms
     class Genetic < Base
+      def initialize(match, weights = {}, draft_client: Clients::EngineApi.new)
+        super(match, weights)
+        @draft_client = draft_client
+      end
+
       protected
 
         def validate_prerequisites!
@@ -18,7 +23,7 @@ module DraftService
             }
           }
 
-          response = Clients::EngineApi.new.genetic_draft(json_players, weights)
+          response = @draft_client.genetic_draft(json_players, weights)
 
           team_a = match.players.where(id: response["team_a"].map { |p| p["id"] })
           team_b = match.players.where(id: response["team_b"].map { |p| p["id"] })
