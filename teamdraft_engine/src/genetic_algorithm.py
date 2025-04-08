@@ -41,14 +41,16 @@ class TeamBalanceScoreCalculator:
 
 class GeneticAlgorithm:
     def __init__(self, 
-                 normalizer: PlayerNormalizer,
-                 stats_calculator: TeamStatsCalculator,
-                 balance_score_calculator: TeamBalanceScoreCalculator,
+                 players,
+                 weights,
                  population_size=200, 
                  generations=100):
-        self.normalizer = normalizer
-        self.stats_calculator = stats_calculator
-        self.balance_score_calculator = balance_score_calculator
+
+        self.players = players
+        self.weights = weights
+        self.normalizer = PlayerNormalizer()
+        self.stats_calculator = TeamStatsCalculator()
+        self.balance_score_calculator = TeamBalanceScoreCalculator(weights)
         self.population_size = population_size
         self.generations = generations
         self.setup_genetic_algorithm()
@@ -90,8 +92,8 @@ class GeneticAlgorithm:
         score = self.balance_score_calculator.calculate_score(a_stats, b_stats)
         return score,
 
-    def balance_teams(self, players):
-        normalized_players = self.normalizer.normalize(players)
+    def balance_teams(self):
+        normalized_players = self.normalizer.normalize(self.players)
         pop = self.toolbox.population(n=self.population_size)
         result, _ = algorithms.eaSimple(pop, self.toolbox, 
                                       cxpb=0.7, mutpb=0.2, 

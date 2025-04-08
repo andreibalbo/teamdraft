@@ -15,9 +15,9 @@ def genetic_draft():
         weights = data['weights']
         
         # We can add other algorithms here and select which one to use
-        balancer = GeneticAlgorithm(players, weights)
+        algorithm = GeneticAlgorithm(players, weights)
 
-        team_a, team_b, score = balancer.balance_teams()
+        team_a, team_b, score = algorithm.balance_teams()
         
         return jsonify({
             'success': True,
