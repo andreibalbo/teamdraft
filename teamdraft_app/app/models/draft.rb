@@ -1,4 +1,6 @@
 class Draft < ApplicationRecord
+  include StatsCalculatable
+
   belongs_to :match
 
   validates :balance_score, presence: true, numericality: true
@@ -21,28 +23,12 @@ class Draft < ApplicationRecord
   def team_b_stats
     calculate_team_stats(team_b_players)
   end
-  def team_stats_difference
-    a_stats = team_a_stats
-    b_stats = team_b_stats
 
-    {
-      attack: (a_stats[:attack] - b_stats[:attack]).abs,
-      defense: (a_stats[:defense] - b_stats[:defense]).abs,
-      stamina: (a_stats[:stamina] - b_stats[:stamina]).abs,
-      positioning: (a_stats[:positioning] - b_stats[:positioning]).abs
-    }
+  def team_stats_difference
+    calculate_stats_difference(team_a_stats, team_b_stats)
   end
 
   private
-
-    def calculate_team_stats(players)
-      {
-        attack: players.sum(&:attack),
-        defense: players.sum(&:defense),
-        stamina: players.sum(&:stamina),
-        positioning: players.sum(&:positioning)
-      }
-    end
 
     def teams_must_be_from_match_players
       return unless match

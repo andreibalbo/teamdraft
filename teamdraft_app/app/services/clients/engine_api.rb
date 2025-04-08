@@ -1,5 +1,7 @@
 module Clients
   class EngineApi
+    include DraftService::DraftClientInterface
+
     def initialize
       @base_url = "http://engine:5000"
     end
