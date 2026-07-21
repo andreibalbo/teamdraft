@@ -162,22 +162,16 @@ TD.store = (function () {
       return db;
     }
 
-    // Sign in anonymously once; every operation waits for this so requests
-    // carry an auth token (required by the locked-down security rules).
+    // Every operation waits until a user is signed in (via the login screen),
+    // so requests carry an auth token required by the security rules.
     async function ready() {
       ensure();
       if (!authPromise) {
-        authPromise = firebase
-          .auth()
-          .signInAnonymously()
-          .catch((e) => {
-            authPromise = null; // allow a retry on next call
-            const hint =
-              e && e.code === "auth/operation-not-allowed"
-                ? " — enable Anonymous sign-in in Firebase console (Authentication → Sign-in method)."
-                : "";
-            throw new Error("Firebase sign-in failed" + hint + " (" + (e.code || e.message) + ")");
-          });
+        authPromise = new Promise((resolve, reject) => {
+          firebase.auth().onAuthStateChanged((user) => {
+            if (user) resolve(user); // stays pending until logged in
+          }, reject);
+        });
       }
       await authPromise;
       return db;

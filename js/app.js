@@ -594,7 +594,48 @@ TD.app = (function () {
     $("app").classList.remove("hidden");
     go("groups", { groupId: null, matchId: null });
   }
+  function showLogin() {
+    $("app").classList.add("hidden");
+    $("login").classList.remove("hidden");
+  }
+  const loginError = (msg) => {
+    const el = $("login-error");
+    if (msg) el.textContent = msg;
+    el.classList.remove("hidden");
+  };
+
   function initAuth() {
+    $("back-btn").addEventListener("click", back);
+
+    if (cfg.STORAGE_BACKEND === "firebase") initFirebaseAuth();
+    else initLocalAuth();
+  }
+
+  // Firebase Email/Password: one shared account, sessions persist across reloads.
+  function initFirebaseAuth() {
+    const userInput = $("login-user");
+    userInput.placeholder = "Email";
+    userInput.type = "email";
+
+    firebase.auth().onAuthStateChanged((user) => (user ? showApp() : showLogin()));
+
+    $("login-form").addEventListener("submit", async (e) => {
+      e.preventDefault();
+      $("login-error").classList.add("hidden");
+      try {
+        await firebase
+          .auth()
+          .signInWithEmailAndPassword($("login-user").value.trim(), $("login-pass").value);
+        // onAuthStateChanged shows the app
+      } catch (err) {
+        loginError("Login failed: " + (err.code || err.message));
+      }
+    });
+    $("logout-btn").addEventListener("click", () => firebase.auth().signOut());
+  }
+
+  // Local (localStorage) mode: simple hardcoded gate, no cloud.
+  function initLocalAuth() {
     if (sessionStorage.getItem("td_auth") === "1") showApp();
     $("login-form").addEventListener("submit", (e) => {
       e.preventDefault();
@@ -603,15 +644,13 @@ TD.app = (function () {
         sessionStorage.setItem("td_auth", "1");
         showApp();
       } else {
-        $("login-error").classList.remove("hidden");
+        loginError();
       }
     });
     $("logout-btn").addEventListener("click", () => {
       sessionStorage.removeItem("td_auth");
-      $("app").classList.add("hidden");
-      $("login").classList.remove("hidden");
+      showLogin();
     });
-    $("back-btn").addEventListener("click", back);
   }
 
   return {

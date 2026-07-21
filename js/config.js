@@ -15,7 +15,9 @@ window.TD = window.TD || {};
 TD.config = {
   STORAGE_BACKEND: "firebase", // "local" | "firebase"
 
-  // Login (obscurity only on a static site — fine for a private app).
+  // Login for LOCAL mode only (obscurity, not security).
+  // In "firebase" mode these are IGNORED — login uses your Firebase
+  // Email/Password account instead, and no password is stored in this file.
   ADMIN_USER: "admin",
   ADMIN_PASS: "123123",
 

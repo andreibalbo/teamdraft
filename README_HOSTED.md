@@ -64,25 +64,39 @@ For cloud storage / multiple devices:
 3. **Project settings → Your apps → Web app** — copy the `firebaseConfig`
    object into `FIREBASE_CONFIG` in `js/config.js`, and set
    `STORAGE_BACKEND: "firebase"`. (The web config is **not** a secret.)
-4. **Build → Authentication → Get started → Sign-in method → Anonymous →
-   Enable → Save.** The app signs in anonymously so requests carry an auth
-   token.
-5. **Build → Firestore Database → Rules**, paste the rules below, **Publish**:
+4. **Build → Authentication → Get started → Sign-in method → Email/Password →
+   Enable → Save.** (Leave Anonymous disabled.)
+5. Create ONE shared account: **Authentication → Users → Add user** — enter an
+   email (any address, real or made-up, e.g. `team@teamdraft.app`) and a
+   password. **Copy the resulting User UID.** Share the email + password with
+   your friends directly — never put them in the code.
+6. **Build → Firestore Database → Rules**, paste the rules below (replace
+   `YOUR_UID`), **Publish**:
 
    ```
    rules_version = '2';
    service cloud.firestore {
      match /databases/{database}/documents {
        match /{document=**} {
-         allow read, write: if request.auth != null;
+         allow read, write: if request.auth != null
+                            && request.auth.uid == "YOUR_UID";
        }
      }
    }
    ```
 
-6. For the live site, add your domain: **Authentication → Settings →
+   Everyone logs in with the shared account, so they all share that one UID.
+   Anyone who self-registers a different account is blocked.
+7. For the live site, add your domain: **Authentication → Settings →
    Authorized domains → Add domain →** `<user>.github.io`. (`localhost` is
    already authorized for local testing.)
+
+### Security note (public repo)
+
+The `firebaseConfig` in `js/config.js` is **not** a secret — Firebase web
+configs are meant to ship in client code. Your data is protected by the rules
+above (only the shared account's UID can read/write), and the password lives
+only in Firebase, not in the repo. So a public repo is safe.
 
 You do **not** create collections manually — Firestore creates them
 automatically the first time the app writes data.
