@@ -154,10 +154,7 @@ TD.store = (function () {
 
     function ensure() {
       if (db) return db;
-      if (typeof firebase === "undefined" || !firebase.firestore || !firebase.auth) {
-        throw new Error("Firebase SDK not loaded (need app, firestore and auth).");
-      }
-      firebase.initializeApp(TD.config.FIREBASE_CONFIG);
+      TD.initFirebase();
       db = firebase.firestore();
       return db;
     }

@@ -37,3 +37,12 @@ TD.config = {
     appId: "1:922953693306:web:728b319efc808c9ca763c3"
   },
 };
+
+// Initialize the Firebase app exactly once (safe to call repeatedly).
+TD.initFirebase = function () {
+  if (typeof firebase === "undefined" || !firebase.firestore || !firebase.auth) {
+    throw new Error("Firebase SDK not loaded (need app, firestore and auth).");
+  }
+  if (!firebase.apps.length) firebase.initializeApp(TD.config.FIREBASE_CONFIG);
+  return firebase.app();
+};

@@ -613,6 +613,8 @@ TD.app = (function () {
 
   // Firebase Email/Password: one shared account, sessions persist across reloads.
   function initFirebaseAuth() {
+    TD.initFirebase(); // must run before firebase.auth()
+
     const userInput = $("login-user");
     userInput.placeholder = "Email";
     userInput.type = "email";
