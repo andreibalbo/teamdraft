@@ -412,6 +412,12 @@ TD.app = (function () {
         el.classList.toggle("hidden");
       })
     );
+    view.querySelectorAll("[data-editdraft]").forEach((b) =>
+      b.addEventListener("click", () => {
+        const d = drafts.find((x) => x.id === b.dataset.editdraft);
+        editDraftModal(gid, match, d, byId, matchPlayers);
+      })
+    );
     const rf = $("result-form");
     if (rf)
       rf.addEventListener("submit", async (e) => {
@@ -453,7 +459,8 @@ TD.app = (function () {
     const teamB = d.teamBPlayerIds.map((id) => byId[id]).filter(Boolean);
     const sA = TD.algo.teamStats(teamA);
     const sB = TD.algo.teamStats(teamB);
-    const algoLabel = d.algorithm === "brute" ? "Brute force" : "Genetic";
+    const algoLabel =
+      d.algorithm === "brute" ? "Brute force" : d.algorithm === "manual" ? "Manual" : "Genetic";
 
     const teamCol = (name, team) => `
       <div class="flex-1">
@@ -484,24 +491,105 @@ TD.app = (function () {
         </div>
         <div class="flex gap-2 mt-3">
           <button data-lineup="${d.id}" class="text-sm border rounded-lg px-3 py-1.5 flex-1">⚽ Lineup</button>
+          <button data-editdraft="${d.id}" class="text-sm border rounded-lg px-3 py-1.5 flex-1">✎ Edit teams</button>
           ${chosen ? "" : `<button data-choose="${d.id}" class="text-sm bg-emerald-600 text-white rounded-lg px-3 py-1.5 flex-1 font-semibold">Choose this</button>`}
         </div>
         <div id="lineup-${d.id}" class="hidden mt-3 grid grid-cols-2 gap-2">
-          ${pitch(teamA)}${pitch(teamB)}
+          <div><div class="text-xs font-bold text-center mb-1">Team A</div>${pitch(teamA)}</div>
+          <div><div class="text-xs font-bold text-center mb-1">Team B</div>${pitch(teamB)}</div>
         </div>
       </div>`;
   }
 
+  // Pitch drawn with attack at top, defense at bottom, and a fixed goalkeeper
+  // + goal at the bottom centre so the orientation is unmistakable.
   function pitch(team) {
     const [def, mid, att] = TD.lineup.formation(team);
-    const row = (players) =>
-      `<div class="flex justify-center gap-1 flex-wrap min-h-[24px]">${players
+    const row = (players, label) =>
+      `<div class="flex justify-center items-center gap-1 flex-wrap min-h-[22px]">${players
         .map((p) => `<span class="bg-white/90 text-[10px] font-semibold rounded px-1.5 py-0.5 shadow">${esc(p.name.split(" ")[0])}</span>`)
         .join("")}</div>`;
     return `
-      <div class="pitch p-2 flex flex-col justify-between gap-3 h-40">
+      <div class="pitch relative p-2 pb-8 flex flex-col justify-between gap-2 h-52">
+        <div class="absolute top-1 right-1 text-[8px] font-bold text-white/80 tracking-wide">ATTACK ▲</div>
         ${row(att)}${row(mid)}${row(def)}
+        <div class="absolute bottom-6 left-1 text-[8px] font-bold text-white/80 tracking-wide">DEF ▼</div>
+        <div class="goal"></div>
+        <div class="gk-badge" title="Goalkeeper">🧤</div>
       </div>`;
+  }
+
+  // Manually reassign players between Team A / Team B / bench (Out) — works
+  // even after a draft is chosen (late arrivals, swaps, no-shows).
+  function editDraftModal(gid, match, draft, byId, matchPlayers) {
+    const assign = {};
+    matchPlayers.forEach((p) => {
+      assign[p.id] = draft.teamAPlayerIds.includes(p.id)
+        ? "A"
+        : draft.teamBPlayerIds.includes(p.id)
+        ? "B"
+        : "out";
+    });
+    const activeCls = { A: "bg-primary text-white", B: "bg-indigo-600 text-white", out: "bg-slate-400 text-white" };
+    const segBtn = (pid, v) =>
+      `<button data-assign="${pid}" data-val="${v}" class="px-3 py-1.5 ${assign[pid] === v ? activeCls[v] : "bg-white text-slate-500"}">${v === "out" ? "Out" : v}</button>`;
+    const rows = matchPlayers
+      .map(
+        (p) => `
+      <div class="flex items-center gap-2 py-1.5 border-b last:border-0">
+        <span class="flex-1 text-sm truncate">${posTag(p)} ${esc(p.name)}</span>
+        <div class="flex rounded-lg overflow-hidden border text-xs">${segBtn(p.id, "A")}${segBtn(p.id, "B")}${segBtn(p.id, "out")}</div>
+      </div>`
+      )
+      .join("");
+
+    modal(`
+      <div class="p-5">
+        <h2 class="text-lg font-bold mb-1">Edit teams</h2>
+        <p class="text-xs text-slate-500 mb-3">Move players between teams or bench. <span id="ed-count"></span></p>
+        <div class="max-h-[55vh] overflow-y-auto border rounded-lg px-2">${rows}</div>
+        <div class="flex gap-2 mt-4">
+          <div class="flex-1"></div>
+          <button onclick="TD.app._closeModal()" class="px-4 py-2">Cancel</button>
+          <button id="ed-save" class="bg-primary text-white rounded-lg px-4 py-2 font-semibold">Save teams</button>
+        </div>
+      </div>`);
+
+    const host = $("modal-host");
+    const refresh = () => {
+      const a = Object.values(assign).filter((v) => v === "A").length;
+      const b = Object.values(assign).filter((v) => v === "B").length;
+      $("ed-count").textContent = `Team A: ${a} · Team B: ${b}`;
+    };
+    host.querySelectorAll("[data-assign]").forEach((btn) =>
+      btn.addEventListener("click", () => {
+        const pid = btn.dataset.assign;
+        assign[pid] = btn.dataset.val;
+        // repaint this player's three buttons
+        host.querySelectorAll(`[data-assign="${pid}"]`).forEach((b2) => {
+          const v = b2.dataset.val;
+          b2.className = `px-3 py-1.5 ${assign[pid] === v ? activeCls[v] : "bg-white text-slate-500"}`;
+        });
+        refresh();
+      })
+    );
+    refresh();
+
+    $("ed-save").onclick = async () => {
+      const teamAPlayerIds = matchPlayers.filter((p) => assign[p.id] === "A").map((p) => p.id);
+      const teamBPlayerIds = matchPlayers.filter((p) => assign[p.id] === "B").map((p) => p.id);
+      if (!teamAPlayerIds.length || !teamBPlayerIds.length) return toast("Each team needs at least 1 player");
+      const stats = (ids) => ids.map((id) => byId[id]).filter(Boolean);
+      const score = TD.algo.scoreSplit(stats(teamAPlayerIds), stats(teamBPlayerIds), draft.weights || {});
+      await store.updateDraft(gid, match.id, draft.id, {
+        teamAPlayerIds,
+        teamBPlayerIds,
+        algorithm: "manual",
+        balanceScore: Math.round(score * 10000) / 10000,
+      });
+      closeModal();
+      render();
+    };
   }
 
   function draftModal(gid, match, matchPlayers) {

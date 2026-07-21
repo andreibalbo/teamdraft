@@ -133,6 +133,11 @@ TD.store = (function () {
         writeAll(db);
         return id;
       },
+      async updateDraft(gid, mid, id, data) {
+        const db = readAll();
+        Object.assign(db.groups[gid].matches[mid].drafts[id], data);
+        writeAll(db);
+      },
       async deleteDraft(gid, mid, id) {
         const db = readAll();
         delete db.groups[gid].matches[mid].drafts[id];
@@ -253,6 +258,10 @@ TD.store = (function () {
       async createDraft(gid, mid, data) {
         await ready();
         return (await col(dCol(gid, mid)).add({ ...data, createdAt: Date.now() })).id;
+      },
+      async updateDraft(gid, mid, id, data) {
+        await ready();
+        await col(dCol(gid, mid)).doc(id).update(data);
       },
       async deleteDraft(gid, mid, id) {
         await ready();
