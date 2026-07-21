@@ -4,3 +4,8 @@ settings.json
 
 # Version manager files
 .tool-versions
+
+# Node dependencies (not part of this project)
+node_modules/
+package-lock.json
+
