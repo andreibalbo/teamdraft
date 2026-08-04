@@ -269,7 +269,7 @@ TD.app = (function () {
     body.innerHTML = `
       <div class="flex gap-2 mb-3">
         <button id="add-match" class="flex-1 bg-primary text-white rounded-xl py-3 font-semibold">+ New match</button>
-        <button id="export-csv" class="bg-white border rounded-xl py-3 px-4 font-semibold text-primary">⬇ CSV</button>
+        <button id="export-csv" class="bg-white border rounded-xl py-3 px-4 font-semibold text-primary">⬇ Export</button>
       </div>
       <div class="flex flex-col gap-2">
         ${
@@ -292,7 +292,7 @@ TD.app = (function () {
         }
       </div>`;
     $("add-match").onclick = () => matchModal(group.id);
-    $("export-csv").onclick = () => exportGroup(group);
+    $("export-csv").onclick = () => exportMenu(group);
     body.querySelectorAll("[data-match]").forEach((el) =>
       el.addEventListener("click", () => go("match", { matchId: el.dataset.match }))
     );
@@ -302,6 +302,8 @@ TD.app = (function () {
     const editing = !!m;
     const players = await store.listPlayers(gid);
     const selected = new Set(m?.playerIds || []);
+    // "Same as last match": most recent match's roster (only when creating new).
+    const lastMatch = editing ? null : (await store.listMatches(gid))[0];
     modal(`
       <div class="p-5">
         <h2 class="text-lg font-bold mb-4">${editing ? "Edit" : "New"} match</h2>
@@ -311,6 +313,11 @@ TD.app = (function () {
           <span class="text-sm font-medium">Players playing</span>
           <span id="m-count" class="text-sm text-primary font-bold">${selected.size}</span>
         </div>
+        ${
+          lastMatch && (lastMatch.playerIds || []).length
+            ? `<button id="m-samelast" class="w-full text-sm border rounded-lg py-2 mb-2 text-primary">⟳ Same players as last match (${lastMatch.playerIds.length})</button>`
+            : ""
+        }
         <div class="flex flex-col gap-1 max-h-64 overflow-y-auto border rounded-lg p-1">
           ${
             players.length
@@ -334,9 +341,14 @@ TD.app = (function () {
         </div>
       </div>`);
     const picks = () => Array.from(document.querySelectorAll(".m-pick"));
-    picks().forEach((c) =>
-      c.addEventListener("change", () => ($("m-count").textContent = picks().filter((x) => x.checked).length))
-    );
+    const updateCount = () => ($("m-count").textContent = picks().filter((x) => x.checked).length);
+    picks().forEach((c) => c.addEventListener("change", updateCount));
+    if ($("m-samelast"))
+      $("m-samelast").onclick = () => {
+        const ids = new Set(lastMatch.playerIds);
+        picks().forEach((c) => (c.checked = ids.has(c.value)));
+        updateCount();
+      };
     $("m-save").onclick = async () => {
       const playerIds = picks().filter((c) => c.checked).map((c) => c.value);
       const datetime = new Date($("m-dt").value).getTime();
@@ -674,7 +686,8 @@ TD.app = (function () {
   }
 
   /* -------------------------------- EXPORT ------------------------------- */
-  async function exportGroup(group) {
+  // Gather chosen matches (with their chosen draft) + player lookup for a group.
+  async function collectChosen(group) {
     const players = await store.listPlayers(group.id);
     const byId = Object.fromEntries(players.map((p) => [p.id, p]));
     const matches = await store.listMatches(group.id);
@@ -685,11 +698,69 @@ TD.app = (function () {
       const draft = drafts.find((d) => d.id === m.chosenDraftId);
       if (draft) enriched.push({ ...m, draft });
     }
-    if (!enriched.length) return toast("No chosen matches with a result yet");
-    const csv = TD.exporter.buildCsv(enriched, byId);
-    const safe = (group.name || "group").replace(/[^\w-]+/g, "_");
-    TD.exporter.download(`${safe}_matches_${new Date().toISOString().slice(0, 10)}.csv`, csv);
-    toast(`Exported ${enriched.length} match(es)`);
+    return { byId, enriched };
+  }
+  const safeName = (s) => (s || "group").replace(/[^\w-]+/g, "_");
+  const today = () => new Date().toISOString().slice(0, 10);
+
+  function exportMenu(group) {
+    const item = (id, title, sub) =>
+      `<button id="${id}" class="w-full text-left border rounded-lg p-3 mb-2">
+         <div class="font-semibold text-sm">${title}</div>
+         <div class="text-xs text-slate-500">${sub}</div>
+       </button>`;
+    modal(`
+      <div class="p-5">
+        <h2 class="text-lg font-bold mb-3">Export & backup</h2>
+        <div class="text-xs font-semibold text-slate-400 mb-1">MATCH DATA (chosen matches with results)</div>
+        ${item("ex-tidy", "Per-player CSV", "One row per player per match — human-friendly")}
+        ${item("ex-match", "Per-match CSV (ML)", "One row per match with team totals, diffs, result")}
+        ${item("ex-json", "Match JSON (ML)", "Full feature vectors + outcomes for training")}
+        <div class="text-xs font-semibold text-slate-400 mb-1 mt-3">FULL DATASET</div>
+        ${item("ex-backup", "Backup all data (JSON)", "Everything — groups, players, matches, drafts")}
+        ${item("ex-import", "Import backup…", "Restore from a backup file (merges/overwrites by id)")}
+        <input id="ex-file" type="file" accept="application/json,.json" class="hidden" />
+        <div class="flex justify-end mt-2">
+          <button onclick="TD.app._closeModal()" class="px-4 py-2">Close</button>
+        </div>
+      </div>`);
+
+    const matchExport = async (kind) => {
+      const { byId, enriched } = await collectChosen(group);
+      if (!enriched.length) return toast("No chosen matches with a result yet");
+      const base = `${safeName(group.name)}_${today()}`;
+      if (kind === "tidy")
+        TD.exporter.download(`${base}_players.csv`, TD.exporter.buildCsv(enriched, byId));
+      else if (kind === "match")
+        TD.exporter.download(`${base}_matches.csv`, TD.exporter.buildMatchCsv(enriched, byId));
+      else
+        TD.exporter.download(`${base}_matches.json`, TD.exporter.buildMatchJson(enriched, byId), "application/json");
+      toast(`Exported ${enriched.length} match(es)`);
+    };
+    $("ex-tidy").onclick = () => matchExport("tidy");
+    $("ex-match").onclick = () => matchExport("match");
+    $("ex-json").onclick = () => matchExport("json");
+
+    $("ex-backup").onclick = async () => {
+      const tree = await store.exportAll();
+      TD.exporter.download(`teamdraft_backup_${today()}.json`, JSON.stringify(tree, null, 2), "application/json");
+      toast("Backup downloaded");
+    };
+    $("ex-import").onclick = () => $("ex-file").click();
+    $("ex-file").onchange = async (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
+      if (!confirm("Import backup? This overwrites entries with the same id.")) return;
+      try {
+        const tree = JSON.parse(await file.text());
+        await store.importAll(tree);
+        closeModal();
+        toast("Backup imported");
+        go("groups", { groupId: null });
+      } catch (err) {
+        toast("Import failed: " + err.message);
+      }
+    };
   }
 
   /* --------------------------------- AUTH -------------------------------- */
@@ -708,8 +779,22 @@ TD.app = (function () {
     el.classList.remove("hidden");
   };
 
+  function initTheme() {
+    const btn = $("theme-btn");
+    const apply = () => (btn.textContent = document.documentElement.classList.contains("dark") ? "☀️" : "🌙");
+    apply();
+    btn.addEventListener("click", () => {
+      const dark = document.documentElement.classList.toggle("dark");
+      try {
+        localStorage.setItem("td_theme", dark ? "dark" : "light");
+      } catch (e) {}
+      apply();
+    });
+  }
+
   function initAuth() {
     $("back-btn").addEventListener("click", back);
+    initTheme();
 
     if (cfg.STORAGE_BACKEND === "firebase") initFirebaseAuth();
     else initLocalAuth();

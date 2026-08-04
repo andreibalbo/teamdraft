@@ -2,6 +2,31 @@
 * { -webkit-tap-highlight-color: transparent; }
 body { -webkit-text-size-adjust: 100%; }
 
+/* ---------------------------- Dark mode --------------------------------
+ * Pragmatic overrides: the app uses fixed Tailwind utility classes, so we
+ * restyle the common surfaces globally when <html> has the .dark class. */
+html.dark body { background: #0f172a; color: #e2e8f0; }
+html.dark .bg-slate-100 { background: #0f172a !important; }
+html.dark .bg-white { background: #1e293b !important; color: #e2e8f0; }
+html.dark .bg-slate-100.rounded,
+html.dark .bg-slate-100.rounded-lg { background: #334155 !important; }
+html.dark .text-slate-800 { color: #e2e8f0 !important; }
+html.dark .text-slate-700 { color: #cbd5e1 !important; }
+html.dark .text-slate-500 { color: #94a3b8 !important; }
+html.dark .text-slate-400 { color: #64748b !important; }
+html.dark .text-slate-300 { color: #475569 !important; }
+html.dark .border,
+html.dark .border-b { border-color: #334155 !important; }
+html.dark input,
+html.dark select,
+html.dark textarea { background: #0f172a; color: #e2e8f0; border-color: #334155; }
+html.dark .shadow,
+html.dark .shadow-sm { box-shadow: 0 1px 3px rgba(0, 0, 0, 0.6); }
+html.dark .bg-black\/50 { background: rgba(0, 0, 0, 0.7) !important; }
+html.dark .bg-emerald-50 { background: #064e3b !important; }
+html.dark .border-emerald-200 { border-color: #047857 !important; }
+html.dark input[type="range"] { background: #334155; }
+
 /* Range slider styling for stat inputs (touch-friendly). */
 input[type="range"] {
   -webkit-appearance: none;
