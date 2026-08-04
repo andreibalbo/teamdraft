@@ -101,6 +101,19 @@ input[type="range"]::-moz-range-thumb {
   border-radius: 4px 4px 0 0;
 }
 
+/* Player name chips on the pitch — fixed white/black so they stay readable
+ * in both light and dark mode (over the green pitch). */
+.pitch-chip {
+  background: #ffffff;
+  color: #0f172a;
+  border: 1px solid #0f172a;
+  font-size: 10px;
+  font-weight: 600;
+  border-radius: 4px;
+  padding: 1px 6px;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.35);
+}
+
 /* Fixed goalkeeper badge inside the goal. */
 .pitch .gk-badge {
   position: absolute;

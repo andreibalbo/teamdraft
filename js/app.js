@@ -520,7 +520,7 @@ TD.app = (function () {
     const [def, mid, att] = TD.lineup.formation(team);
     const row = (players, label) =>
       `<div class="flex justify-center items-center gap-1 flex-wrap min-h-[22px]">${players
-        .map((p) => `<span class="bg-white/90 text-[10px] font-semibold rounded px-1.5 py-0.5 shadow">${esc(p.name.split(" ")[0])}</span>`)
+        .map((p) => `<span class="pitch-chip">${esc(p.name.split(" ")[0])}</span>`)
         .join("")}</div>`;
     return `
       <div class="pitch relative p-2 pb-8 flex flex-col justify-between gap-2 h-52">
