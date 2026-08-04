@@ -9,7 +9,14 @@
     <!-- Tailwind (Play CDN — no build step) -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
-      tailwind.config = { theme: { extend: { colors: { primary: "#15803d" } } } };
+      tailwind.config = { darkMode: "class", theme: { extend: { colors: { primary: "#15803d" } } } };
+    </script>
+    <!-- Apply saved theme before paint to avoid a flash of light mode -->
+    <script>
+      try {
+        if (localStorage.getItem("td_theme") === "dark")
+          document.documentElement.classList.add("dark");
+      } catch (e) {}
     </script>
 
     <!-- Firebase compat SDK (only used when STORAGE_BACKEND = "firebase") -->
@@ -45,6 +52,7 @@
         <div class="max-w-3xl mx-auto px-4 py-3 flex items-center gap-3">
           <button id="back-btn" class="hidden text-white/90 text-xl leading-none">&larr;</button>
           <h1 id="title" class="font-bold text-lg flex-1 truncate">Groups</h1>
+          <button id="theme-btn" class="text-lg px-2" title="Toggle dark mode">🌙</button>
           <button id="logout-btn" class="text-sm bg-white/15 rounded-lg px-3 py-1">Log out</button>
         </div>
       </header>

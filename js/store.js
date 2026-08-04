@@ -143,6 +143,14 @@ TD.store = (function () {
         delete db.groups[gid].matches[mid].drafts[id];
         writeAll(db);
       },
+
+      async exportAll() {
+        return readAll();
+      },
+      async importAll(tree) {
+        if (!tree || typeof tree !== "object" || !tree.groups) throw new Error("Invalid backup file.");
+        writeAll(tree);
+      },
     };
 
     // drop nested subcollections when returning a doc
@@ -266,6 +274,40 @@ TD.store = (function () {
       async deleteDraft(gid, mid, id) {
         await ready();
         await col(dCol(gid, mid)).doc(id).delete();
+      },
+
+      // Portable backup: same nested shape as the localStorage backend, so a
+      // backup taken here can be restored into local mode and vice versa.
+      async exportAll() {
+        await ready();
+        const tree = { groups: {} };
+        const gs = await col("groups").orderBy("createdAt").get();
+        for (const g of gs.docs) {
+          const gd = { ...g.data(), players: {}, matches: {} };
+          (await col(pCol(g.id)).get()).forEach((p) => (gd.players[p.id] = p.data()));
+          const ms = await col(mCol(g.id)).get();
+          for (const m of ms.docs) {
+            const md = { ...m.data(), drafts: {} };
+            (await col(dCol(g.id, m.id)).get()).forEach((d) => (md.drafts[d.id] = d.data()));
+            gd.matches[m.id] = md;
+          }
+          tree.groups[g.id] = gd;
+        }
+        return tree;
+      },
+      async importAll(tree) {
+        if (!tree || typeof tree !== "object" || !tree.groups) throw new Error("Invalid backup file.");
+        await ready();
+        for (const [gid, g] of Object.entries(tree.groups)) {
+          const { players = {}, matches = {}, ...gdata } = g;
+          await col("groups").doc(gid).set(gdata);
+          for (const [pid, p] of Object.entries(players)) await col(pCol(gid)).doc(pid).set(p);
+          for (const [mid, m] of Object.entries(matches)) {
+            const { drafts = {}, ...mdata } = m;
+            await col(mCol(gid)).doc(mid).set(mdata);
+            for (const [did, d] of Object.entries(drafts)) await col(dCol(gid, mid)).doc(did).set(d);
+          }
+        }
       },
     };
   })();
