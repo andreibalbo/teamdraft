@@ -19,28 +19,43 @@ TD.algo = (function () {
     return s;
   }
 
-  /* Balance score in [0,1], higher = more balanced. Identical formula to the
-   * original TeamBalanceScoreCalculator. */
-  function balanceScore(statsA, statsB, weights) {
+  /* Balance score in [0,1], higher = more balanced.
+   * mode "linear"  : weighted sum of per-stat differences (original formula).
+   * mode "squared" : weighted sum of SQUARED per-stat differences, then
+   *                  sqrt-ed back to the same scale. Penalises any single
+   *                  large per-stat gap more, so imbalance is spread evenly
+   *                  across stats instead of concentrated in one. */
+  function balanceScore(statsA, statsB, weights, mode) {
     const totalW = STATS.reduce((t, k) => t + (Number(weights[k]) || 0), 0);
     if (totalW === 0) return 0;
     let weighted = 0;
     for (const k of STATS) {
       const w = Number(weights[k]) || 0;
       const denom = Math.max(statsA[k], statsB[k]) || 1;
-      const diff = Math.abs(statsA[k] - statsB[k]) / denom;
-      weighted += diff * w;
+      const diff = Math.abs(statsA[k] - statsB[k]) / denom; // in [0,1]
+      weighted += (mode === "squared" ? diff * diff : diff) * w;
     }
-    return 1 - weighted / totalW;
+    const norm = weighted / totalW; // in [0,1]
+    return mode === "squared" ? 1 - Math.sqrt(norm) : 1 - norm;
   }
 
-  function scoreSplit(teamA, teamB, weights) {
-    return balanceScore(teamStats(teamA), teamStats(teamB), weights);
+  function scoreSplit(teamA, teamB, weights, mode) {
+    return balanceScore(teamStats(teamA), teamStats(teamB), weights, mode);
+  }
+
+  // Fisher-Yates shuffle (returns a new array; does not mutate input).
+  function shuffle(arr) {
+    const a = arr.slice();
+    for (let i = a.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [a[i], a[j]] = [a[j], a[i]];
+    }
+    return a;
   }
 
   /* ------------------------------- Brute force --------------------------- */
   // Enumerate every even split. Fix player 0 to team A to skip mirror dupes.
-  function brute(players, weights) {
+  function brute(players, weights, mode) {
     const n = players.length;
     if (n < 2) throw new Error("Need at least 2 players.");
     const half = Math.floor(n / 2); // team A size (n even -> n/2, odd -> floor)
@@ -56,7 +71,7 @@ TD.algo = (function () {
         const teamA = [players[0]];
         const teamB = [];
         rest.forEach((p, i) => (aIdx.has(i) ? teamA : teamB).push(p));
-        const score = scoreSplit(teamA, teamB, weights);
+        const score = scoreSplit(teamA, teamB, weights, mode);
         if (!best || score > best.score) best = { teamA, teamB, score };
         return;
       }
@@ -85,7 +100,7 @@ TD.algo = (function () {
 
   /* --------------------------------- GA ---------------------------------- */
   // Chromosome: array of 0/1, gene i => player i on team A (1) or B (0).
-  function genetic(players, weights, opts) {
+  function genetic(players, weights, mode, opts) {
     const o = Object.assign(
       { populationSize: 200, generations: 100, cxpb: 0.7, mutpb: 0.2, indpb: 0.05, restarts: 3 },
       opts || {}
@@ -98,7 +113,7 @@ TD.algo = (function () {
         teamB = [];
       for (let i = 0; i < n; i++) (ind[i] === 1 ? teamA : teamB).push(players[i]);
       if (Math.abs(teamA.length - teamB.length) > 1) return 0; // size penalty
-      return scoreSplit(teamA, teamB, weights);
+      return scoreSplit(teamA, teamB, weights, mode);
     };
 
     const randInd = () => Array.from({ length: n }, () => (Math.random() < 0.5 ? 1 : 0));
@@ -155,5 +170,5 @@ TD.algo = (function () {
     return { teamA, teamB, score: globalBest.score };
   }
 
-  return { STATS, teamStats, balanceScore, scoreSplit, brute, bruteCombinations, genetic };
+  return { STATS, teamStats, balanceScore, scoreSplit, shuffle, brute, bruteCombinations, genetic };
 })();
