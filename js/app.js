@@ -476,6 +476,7 @@ TD.app = (function () {
       <div class="bg-white rounded-xl shadow-sm p-4 ${chosen ? "ring-2 ring-emerald-500" : ""}">
         <div class="flex items-center gap-2 mb-3">
           <span class="text-xs bg-slate-100 rounded px-2 py-1">${algoLabel}</span>
+          ${d.balanceMode === "squared" ? `<span class="text-xs bg-sky-100 text-sky-700 rounded px-2 py-1" title="Balances each stat evenly">Even</span>` : ""}
           <span class="text-xs font-bold ${pct(d.balanceScore) >= 95 ? "text-emerald-600" : "text-amber-600"}">Balance ${pct(d.balanceScore)}%</span>
           ${chosen ? `<span class="text-xs bg-emerald-100 text-emerald-700 rounded px-2 py-1 font-semibold">CHOSEN</span>` : ""}
           <div class="flex-1"></div>
@@ -580,7 +581,12 @@ TD.app = (function () {
       const teamBPlayerIds = matchPlayers.filter((p) => assign[p.id] === "B").map((p) => p.id);
       if (!teamAPlayerIds.length || !teamBPlayerIds.length) return toast("Each team needs at least 1 player");
       const stats = (ids) => ids.map((id) => byId[id]).filter(Boolean);
-      const score = TD.algo.scoreSplit(stats(teamAPlayerIds), stats(teamBPlayerIds), draft.weights || {});
+      const score = TD.algo.scoreSplit(
+        stats(teamAPlayerIds),
+        stats(teamBPlayerIds),
+        draft.weights || {},
+        draft.balanceMode
+      );
       await store.updateDraft(gid, match.id, draft.id, {
         teamAPlayerIds,
         teamBPlayerIds,
@@ -621,6 +627,10 @@ TD.app = (function () {
             <span class="flex-1 text-sm">Genetic <span class="text-slate-400">— fast, approximate</span></span>
           </label>
         </div>
+        <label class="flex items-center gap-2 p-2 border rounded-lg mt-3">
+          <input type="checkbox" id="even-balance" class="w-5 h-5" checked />
+          <span class="flex-1 text-sm">Balance each stat evenly <span class="text-slate-400">— penalise big gaps in any single stat</span></span>
+        </label>
         <div class="flex gap-2 mt-5">
           <div class="flex-1"></div>
           <button onclick="TD.app._closeModal()" class="px-4 py-2">Cancel</button>
@@ -636,20 +646,26 @@ TD.app = (function () {
       };
       if (Object.values(weights).every((v) => !v)) return toast("Set at least one weight above 0");
       const algorithm = document.querySelector("input[name=algo]:checked").value;
+      const mode = $("even-balance").checked ? "squared" : "linear";
       const btn = $("run-draft");
       btn.textContent = "Working…";
       btn.disabled = true;
       // let the UI paint before a heavy sync computation
       await new Promise((r) => setTimeout(r, 30));
-      const players = matchPlayers.map((p) => ({
+      // Always shuffle first so tie-breaking (esp. brute force) varies each run.
+      const players = TD.algo.shuffle(matchPlayers).map((p) => ({
         id: p.id, positioning: p.positioning, attack: p.attack, defense: p.defense, stamina: p.stamina,
       }));
-      const res = algorithm === "brute" ? TD.algo.brute(players, weights) : TD.algo.genetic(players, weights);
+      const res =
+        algorithm === "brute"
+          ? TD.algo.brute(players, weights, mode)
+          : TD.algo.genetic(players, weights, mode);
       await store.createDraft(gid, match.id, {
         teamAPlayerIds: res.teamA.map((p) => p.id),
         teamBPlayerIds: res.teamB.map((p) => p.id),
         weights,
         algorithm,
+        balanceMode: mode,
         balanceScore: Math.round(res.score * 10000) / 10000,
       });
       closeModal();
