@@ -39,8 +39,23 @@ TD.algo = (function () {
     return mode === "squared" ? 1 - Math.sqrt(norm) : 1 - norm;
   }
 
+  // Per-player averages (mean of each stat). Using averages instead of sums
+  // means uneven teams (e.g. 8 v 7) are balanced by per-player strength, not
+  // by total — so the short-handed team isn't forced to be stronger. For even
+  // teams the /n cancels and the score is identical to the sum-based one.
+  function teamAverages(team) {
+    const n = team.length || 1;
+    const s = teamStats(team);
+    return {
+      positioning: s.positioning / n,
+      attack: s.attack / n,
+      defense: s.defense / n,
+      stamina: s.stamina / n,
+    };
+  }
+
   function scoreSplit(teamA, teamB, weights, mode) {
-    return balanceScore(teamStats(teamA), teamStats(teamB), weights, mode);
+    return balanceScore(teamAverages(teamA), teamAverages(teamB), weights, mode);
   }
 
   // Fisher-Yates shuffle (returns a new array; does not mutate input).
@@ -170,5 +185,5 @@ TD.algo = (function () {
     return { teamA, teamB, score: globalBest.score };
   }
 
-  return { STATS, teamStats, balanceScore, scoreSplit, shuffle, brute, bruteCombinations, genetic };
+  return { STATS, teamStats, teamAverages, balanceScore, scoreSplit, shuffle, brute, bruteCombinations, genetic };
 })();

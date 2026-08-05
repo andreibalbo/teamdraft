@@ -64,7 +64,7 @@ TD.exporter = (function () {
   /* ---------------- ML: one row per match with team features ------------- */
   const MATCH_HEADERS = [
     "match_date", "match_id", "algorithm", "balance_mode", "balance_score",
-    "teamA_players", "teamB_players",
+    "teamA_size", "teamB_size", "teamA_players", "teamB_players",
     "A_pos", "A_att", "A_def", "A_sta",
     "B_pos", "B_att", "B_def", "B_sta",
     "diff_pos", "diff_att", "diff_def", "diff_sta",
@@ -83,6 +83,7 @@ TD.exporter = (function () {
       match_date: fmtDate(m.datetime), match_id: m.id,
       algorithm: d.algorithm || "", balance_mode: d.balanceMode || "linear",
       balance_score: d.balanceScore ?? "",
+      teamA_size: teamA.length, teamB_size: teamB.length,
       teamA_players: teamA.map((p) => p.name).join("; "),
       teamB_players: teamB.map((p) => p.name).join("; "),
       A_pos: A.positioning, A_att: A.attack, A_def: A.defense, A_sta: A.stamina,
