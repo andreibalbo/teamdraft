@@ -16,8 +16,12 @@ TD.exporter = (function () {
   };
   const fmtDate = (ts) => (ts ? new Date(ts).toISOString().slice(0, 10) : "");
   const teamLetter = (i) => String.fromCharCode(65 + i);
-  const teamIdsOf = (d) =>
-    d.teams && d.teams.length ? d.teams : [d.teamAPlayerIds || [], d.teamBPlayerIds || []];
+  const teamIdsOf = (d) => {
+    if (Array.isArray(d.teams)) return d.teams;
+    if (d.teams && typeof d.teams === "object")
+      return Object.keys(d.teams).map(Number).sort((a, b) => a - b).map((k) => d.teams[k]);
+    return [d.teamAPlayerIds || [], d.teamBPlayerIds || []];
+  };
 
   function outcome(mine, theirs) {
     if (mine > theirs) return "win";

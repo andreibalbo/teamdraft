@@ -29,10 +29,17 @@ TD.app = (function () {
 
   /* ------------------ multi-team helpers (2 or 3 teams) ------------------ */
   const teamLetter = (i) => String.fromCharCode(65 + i); // 0->A, 1->B, 2->C
+  // Firestore rejects arrays-of-arrays, so team lists are stored as an
+  // index-keyed map { "0": [...], "1": [...] }. Convert to/from an array here.
+  const teamsToStore = (arr) => arr.reduce((o, ids, i) => ((o[i] = ids), o), {});
   // Player-id arrays for each team, generalised + backward compatible with
-  // old drafts that stored teamAPlayerIds / teamBPlayerIds.
-  const draftTeamIds = (d) =>
-    d.teams && d.teams.length ? d.teams : [d.teamAPlayerIds || [], d.teamBPlayerIds || []];
+  // old drafts that stored teamAPlayerIds / teamBPlayerIds or a raw array.
+  const draftTeamIds = (d) => {
+    if (Array.isArray(d.teams)) return d.teams;
+    if (d.teams && typeof d.teams === "object")
+      return Object.keys(d.teams).map(Number).sort((a, b) => a - b).map((k) => d.teams[k]);
+    return [d.teamAPlayerIds || [], d.teamBPlayerIds || []];
+  };
   const draftTeamCount = (d) => draftTeamIds(d).length;
   // Round-robin pairings for K teams: [[0,1]] for 2, [[0,1],[0,2],[1,2]] for 3.
   const pairings = (k) => {
@@ -661,7 +668,7 @@ TD.app = (function () {
       const stats = (ids) => ids.map((id) => byId[id]).filter(Boolean);
       const score = TD.algo.scoreTeams(newTeams.map(stats), draft.weights || {}, draft.balanceMode);
       const patch = {
-        teams: newTeams,
+        teams: teamsToStore(newTeams), // index-keyed map (Firestore-safe)
         algorithm: "manual",
         balanceScore: Math.round(score * 10000) / 10000,
       };
@@ -781,7 +788,7 @@ TD.app = (function () {
       }
 
       const payload = {
-        teams: teamsIds,
+        teams: teamsToStore(teamsIds), // index-keyed map (Firestore-safe)
         numTeams,
         weights,
         algorithm,
