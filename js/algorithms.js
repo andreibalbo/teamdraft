@@ -54,8 +54,35 @@ TD.algo = (function () {
     };
   }
 
+  // Generalised balance score for K teams (K >= 2), on per-player averages.
+  // For each stat we take the MEAN normalised difference over all team pairs,
+  // then weight + combine. For K = 2 this is exactly scoreSplit / the 2-team
+  // formula (a single pair), so nothing changes for existing 2-team drafts.
+  function scoreTeams(teams, weights, mode) {
+    const totalW = STATS.reduce((t, k) => t + (Number(weights[k]) || 0), 0);
+    if (totalW === 0) return 0;
+    const avgs = teams.map(teamAverages);
+    const K = avgs.length;
+    let weighted = 0;
+    for (const k of STATS) {
+      const w = Number(weights[k]) || 0;
+      if (!w) continue;
+      let pairSum = 0, pairs = 0;
+      for (let i = 0; i < K; i++)
+        for (let j = i + 1; j < K; j++) {
+          const denom = Math.max(avgs[i][k], avgs[j][k]) || 1;
+          const diff = Math.abs(avgs[i][k] - avgs[j][k]) / denom; // in [0,1]
+          pairSum += mode === "squared" ? diff * diff : diff;
+          pairs++;
+        }
+      weighted += (pairs ? pairSum / pairs : 0) * w;
+    }
+    const norm = weighted / totalW;
+    return mode === "squared" ? 1 - Math.sqrt(norm) : 1 - norm;
+  }
+
   function scoreSplit(teamA, teamB, weights, mode) {
-    return balanceScore(teamAverages(teamA), teamAverages(teamB), weights, mode);
+    return scoreTeams([teamA, teamB], weights, mode);
   }
 
   // Fisher-Yates shuffle (returns a new array; does not mutate input).
@@ -185,5 +212,73 @@ TD.algo = (function () {
     return { teamA, teamB, score: globalBest.score };
   }
 
-  return { STATS, teamStats, teamAverages, balanceScore, scoreSplit, shuffle, brute, bruteCombinations, genetic };
+  /* --------------------- Multi-team genetic (K >= 2) --------------------- */
+  // Chromosome: int[] with each gene in [0, numTeams). Individuals start as a
+  // balanced round-robin assignment and only ever undergo SWAP mutation, so
+  // every candidate keeps balanced team sizes (differ by at most 1) — no size
+  // penalty needed. Returns { teams: [players[]...], score }.
+  function geneticMulti(players, weights, mode, numTeams, opts) {
+    const o = Object.assign(
+      { populationSize: 160, generations: 140, restarts: 4, swaps: 2 },
+      opts || {}
+    );
+    const n = players.length;
+    numTeams = numTeams || 2;
+    if (n < numTeams) throw new Error("Need at least " + numTeams + " players.");
+
+    const balancedInit = () => {
+      const a = Array.from({ length: n }, (_, i) => i % numTeams);
+      for (let i = a.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [a[i], a[j]] = [a[j], a[i]];
+      }
+      return a;
+    };
+    const teamsOf = (ind) => {
+      const t = Array.from({ length: numTeams }, () => []);
+      ind.forEach((g, i) => t[g].push(players[i]));
+      return t;
+    };
+    const evaluate = (ind) => scoreTeams(teamsOf(ind), weights, mode);
+    const swapMutate = (ind) => {
+      const c = ind.slice();
+      for (let s = 0; s < o.swaps; s++) {
+        const i = (Math.random() * n) | 0;
+        const j = (Math.random() * n) | 0;
+        if (c[i] !== c[j]) [c[i], c[j]] = [c[j], c[i]];
+      }
+      return c;
+    };
+    const tournament = (pop, fits, k = 3) => {
+      let b = -1;
+      for (let i = 0; i < k; i++) {
+        const c = (Math.random() * pop.length) | 0;
+        if (b < 0 || fits[c] > fits[b]) b = c;
+      }
+      return pop[b];
+    };
+
+    let best = null;
+    for (let r = 0; r < o.restarts; r++) {
+      let pop = Array.from({ length: o.populationSize }, balancedInit);
+      let fits = pop.map(evaluate);
+      for (let g = 0; g < o.generations; g++) {
+        let bi = 0;
+        for (let i = 1; i < fits.length; i++) if (fits[i] > fits[bi]) bi = i;
+        const next = [pop[bi].slice()]; // elitism
+        while (next.length < o.populationSize) next.push(swapMutate(tournament(pop, fits)));
+        pop = next;
+        fits = pop.map(evaluate);
+      }
+      let bi = 0;
+      for (let i = 1; i < fits.length; i++) if (fits[i] > fits[bi]) bi = i;
+      if (!best || fits[bi] > best.score) best = { ind: pop[bi].slice(), score: fits[bi] };
+    }
+    return { teams: teamsOf(best.ind), score: best.score };
+  }
+
+  return {
+    STATS, teamStats, teamAverages, balanceScore, scoreSplit, scoreTeams,
+    shuffle, brute, bruteCombinations, genetic, geneticMulti,
+  };
 })();

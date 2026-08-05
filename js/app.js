@@ -27,6 +27,28 @@ TD.app = (function () {
     return `<span class="text-[10px] font-bold px-1.5 py-0.5 rounded ${color}">${t}</span>`;
   };
 
+  /* ------------------ multi-team helpers (2 or 3 teams) ------------------ */
+  const teamLetter = (i) => String.fromCharCode(65 + i); // 0->A, 1->B, 2->C
+  // Player-id arrays for each team, generalised + backward compatible with
+  // old drafts that stored teamAPlayerIds / teamBPlayerIds.
+  const draftTeamIds = (d) =>
+    d.teams && d.teams.length ? d.teams : [d.teamAPlayerIds || [], d.teamBPlayerIds || []];
+  const draftTeamCount = (d) => draftTeamIds(d).length;
+  // Round-robin pairings for K teams: [[0,1]] for 2, [[0,1],[0,2],[1,2]] for 3.
+  const pairings = (k) => {
+    const out = [];
+    for (let i = 0; i < k; i++) for (let j = i + 1; j < k; j++) out.push([i, j]);
+    return out;
+  };
+  // Read a match's games in the generalised shape, migrating the old
+  // 2-team result:{teamAGoals,teamBGoals} into a single game if needed.
+  const readGames = (match) => {
+    if (Array.isArray(match.games)) return match.games;
+    if (match.result)
+      return [{ a: 0, b: 1, ga: match.result.teamAGoals ?? 0, gb: match.result.teamBGoals ?? 0 }];
+    return null;
+  };
+
   function modal(html) {
     const host = $("modal-host");
     host.innerHTML = `
@@ -276,7 +298,12 @@ TD.app = (function () {
           matches.length
             ? matches
                 .map((m) => {
-                  const played = m.result ? `${m.result.teamAGoals}–${m.result.teamBGoals}` : "";
+                  const games = readGames(m);
+                  const played = games
+                    ? games.length === 1
+                      ? `${games[0].ga}–${games[0].gb}`
+                      : `${games.length} games`
+                    : "";
                   return `
           <div class="bg-white rounded-xl shadow-sm p-4 flex items-center gap-3 cursor-pointer" data-match="${m.id}">
             <div class="flex-1">
@@ -405,14 +432,15 @@ TD.app = (function () {
     // choose / delete / lineup toggles
     view.querySelectorAll("[data-choose]").forEach((b) =>
       b.addEventListener("click", async () => {
-        await store.updateMatch(gid, match.id, { chosenDraftId: b.dataset.choose });
+        // switching the chosen draft changes the teams, so clear any result
+        await store.updateMatch(gid, match.id, { chosenDraftId: b.dataset.choose, games: null, result: null });
         render();
       })
     );
     view.querySelectorAll("[data-deldraft]").forEach((b) =>
       b.addEventListener("click", async () => {
         if (!confirm("Delete this draft?")) return;
-        const patch = match.chosenDraftId === b.dataset.deldraft ? { chosenDraftId: null, result: null } : {};
+        const patch = match.chosenDraftId === b.dataset.deldraft ? { chosenDraftId: null, games: null, result: null } : {};
         await store.deleteDraft(gid, match.id, b.dataset.deldraft);
         if (Object.keys(patch).length) await store.updateMatch(gid, match.id, patch);
         render();
@@ -434,9 +462,18 @@ TD.app = (function () {
     if (rf)
       rf.addEventListener("submit", async (e) => {
         e.preventDefault();
-        const teamAGoals = +$("goals-a").value;
-        const teamBGoals = +$("goals-b").value;
-        await store.updateMatch(gid, match.id, { result: { teamAGoals, teamBGoals } });
+        const chosen = drafts.find((d) => d.id === match.chosenDraftId);
+        const k = draftTeamCount(chosen);
+        const games = pairings(k).map(([i, j]) => ({
+          a: i,
+          b: j,
+          ga: +rf.querySelector(`[data-goal="${i}-${j}-a"]`).value || 0,
+          gb: +rf.querySelector(`[data-goal="${i}-${j}-b"]`).value || 0,
+        }));
+        // keep legacy result populated for 2-team matches (compat)
+        const patch = { games };
+        if (k === 2) patch.result = { teamAGoals: games[0].ga, teamBGoals: games[0].gb };
+        await store.updateMatch(gid, match.id, patch);
         toast("Result saved");
         render();
       });
@@ -446,74 +483,89 @@ TD.app = (function () {
     if (!match.chosenDraftId) return "";
     const chosen = drafts.find((d) => d.id === match.chosenDraftId);
     if (!chosen) return "";
-    const r = match.result || { teamAGoals: 0, teamBGoals: 0 };
+    const k = draftTeamCount(chosen);
+    const games = readGames(match) || [];
+    const goalsFor = (i, j) => {
+      const g = games.find((x) => x.a === i && x.b === j);
+      return g ? { ga: g.ga, gb: g.gb } : { ga: 0, gb: 0 };
+    };
+    const rows = pairings(k)
+      .map(([i, j]) => {
+        const { ga, gb } = goalsFor(i, j);
+        return `
+        <div class="flex items-center justify-center gap-2" data-game="${i}-${j}">
+          <span class="text-sm font-semibold w-14 text-right">Team ${teamLetter(i)}</span>
+          <input data-goal="${i}-${j}-a" type="number" min="0" value="${ga}" class="border rounded-lg w-14 py-2 text-center text-lg font-bold" />
+          <span class="text-slate-400 font-bold">–</span>
+          <input data-goal="${i}-${j}-b" type="number" min="0" value="${gb}" class="border rounded-lg w-14 py-2 text-center text-lg font-bold" />
+          <span class="text-sm font-semibold w-14">Team ${teamLetter(j)}</span>
+        </div>`;
+      })
+      .join("");
     return `
       <div class="bg-emerald-50 border border-emerald-200 rounded-xl p-4 mb-4">
-        <div class="text-sm font-semibold text-emerald-800 mb-2">Chosen draft — final score</div>
-        <form id="result-form" class="flex items-center justify-center gap-3">
-          <div class="text-center">
-            <div class="text-xs text-slate-500 mb-1">Team A</div>
-            <input id="goals-a" type="number" min="0" value="${r.teamAGoals ?? 0}" class="border rounded-lg w-16 py-2 text-center text-xl font-bold" />
+        <div class="text-sm font-semibold text-emerald-800 mb-3">Chosen draft — ${k === 2 ? "final score" : "match scores"}</div>
+        <form id="result-form" class="flex flex-col gap-3">
+          ${rows}
+          <div class="flex justify-center mt-1">
+            <button class="bg-emerald-600 text-white rounded-lg px-5 py-2 font-semibold">Save</button>
           </div>
-          <span class="text-2xl font-bold text-slate-400">–</span>
-          <div class="text-center">
-            <div class="text-xs text-slate-500 mb-1">Team B</div>
-            <input id="goals-b" type="number" min="0" value="${r.teamBGoals ?? 0}" class="border rounded-lg w-16 py-2 text-center text-xl font-bold" />
-          </div>
-          <button class="bg-emerald-600 text-white rounded-lg px-4 py-2 font-semibold ml-2">Save</button>
         </form>
       </div>`;
   }
 
   function draftCard(d, byId, match) {
     const chosen = match.chosenDraftId === d.id;
-    const teamA = d.teamAPlayerIds.map((id) => byId[id]).filter(Boolean);
-    const teamB = d.teamBPlayerIds.map((id) => byId[id]).filter(Boolean);
-    const uneven = teamA.length !== teamB.length;
+    const teams = draftTeamIds(d).map((ids) => ids.map((id) => byId[id]).filter(Boolean));
+    const k = teams.length;
+    const sizes = teams.map((t) => t.length);
+    const uneven = Math.max(...sizes) !== Math.min(...sizes);
     const algoLabel =
       d.algorithm === "brute" ? "Brute force" : d.algorithm === "manual" ? "Manual" : "Genetic";
 
-    const teamCol = (name, team) => `
-      <div class="flex-1">
-        <div class="font-bold text-sm mb-1">${name} <span class="text-slate-400 font-normal">(${team.length})</span></div>
+    const teamCol = (team, i) => `
+      <div class="flex-1 min-w-0">
+        <div class="font-bold text-sm mb-1">Team ${teamLetter(i)} <span class="text-slate-400 font-normal">(${team.length})</span></div>
         ${team
           .map((p) => `<div class="flex items-center gap-1 text-sm py-0.5">${posTag(p)}<span class="truncate">${esc(p.name)}</span></div>`)
           .join("")}
       </div>`;
-    // Per-player averages (what the balancer actually equalises).
     const avgRow = (team) => {
       const a = TD.algo.teamAverages(team);
       const r = (x) => Math.round(x);
       return `avg POS ${r(a.positioning)} · ATT ${r(a.attack)} · DEF ${r(a.defense)} · STA ${r(a.stamina)}`;
     };
+    const cols = teams
+      .map((t, i) => teamCol(t, i))
+      .join(`<div class="w-px bg-slate-200"></div>`);
+    const avgGrid = teams.map((t) => `<div>${avgRow(t)}</div>`).join("");
+    const pitches = teams
+      .map((t, i) => `<div><div class="text-xs font-bold text-center mb-1">Team ${teamLetter(i)}</div>${pitch(t)}</div>`)
+      .join("");
 
     return `
       <div class="bg-white rounded-xl shadow-sm p-4 ${chosen ? "ring-2 ring-emerald-500" : ""}">
-        <div class="flex items-center gap-2 mb-3">
+        <div class="flex items-center gap-2 mb-3 flex-wrap">
           <span class="text-xs bg-slate-100 rounded px-2 py-1">${algoLabel}</span>
+          <span class="text-xs bg-slate-100 rounded px-2 py-1">${k} teams</span>
           ${d.balanceMode === "squared" ? `<span class="text-xs bg-sky-100 text-sky-700 rounded px-2 py-1" title="Balances each stat evenly">Even</span>` : ""}
           <span class="text-xs font-bold ${pct(d.balanceScore) >= 95 ? "text-emerald-600" : "text-amber-600"}">Balance ${pct(d.balanceScore)}%</span>
           ${chosen ? `<span class="text-xs bg-emerald-100 text-emerald-700 rounded px-2 py-1 font-semibold">CHOSEN</span>` : ""}
           <div class="flex-1"></div>
           <button data-deldraft="${d.id}" class="text-slate-400 text-sm">🗑</button>
         </div>
-        <div class="flex gap-3">
-          ${teamCol("Team A", teamA)}
-          <div class="w-px bg-slate-200"></div>
-          ${teamCol("Team B", teamB)}
+        <div class="flex gap-3">${cols}</div>
+        <div class="grid gap-3 mt-2 text-[11px] text-slate-500" style="grid-template-columns:repeat(${k},minmax(0,1fr))">
+          ${avgGrid}
         </div>
-        <div class="grid grid-cols-2 gap-3 mt-2 text-[11px] text-slate-500">
-          <div>${avgRow(teamA)}</div><div>${avgRow(teamB)}</div>
-        </div>
-        ${uneven ? `<div class="text-[11px] text-sky-600 mt-1">Uneven teams — balanced by per-player average (the ${Math.max(teamA.length, teamB.length)}-player side rotates a substitute).</div>` : ""}
+        ${uneven ? `<div class="text-[11px] text-sky-600 mt-1">Uneven teams — balanced by per-player average (larger teams rotate a substitute).</div>` : ""}
         <div class="flex gap-2 mt-3">
           <button data-lineup="${d.id}" class="text-sm border rounded-lg px-3 py-1.5 flex-1">⚽ Lineup</button>
           <button data-editdraft="${d.id}" class="text-sm border rounded-lg px-3 py-1.5 flex-1">✎ Edit teams</button>
           ${chosen ? "" : `<button data-choose="${d.id}" class="text-sm bg-emerald-600 text-white rounded-lg px-3 py-1.5 flex-1 font-semibold">Choose this</button>`}
         </div>
-        <div id="lineup-${d.id}" class="hidden mt-3 grid grid-cols-2 gap-2">
-          <div><div class="text-xs font-bold text-center mb-1">Team A</div>${pitch(teamA)}</div>
-          <div><div class="text-xs font-bold text-center mb-1">Team B</div>${pitch(teamB)}</div>
+        <div id="lineup-${d.id}" class="hidden mt-3 grid gap-2" style="grid-template-columns:repeat(${k},minmax(0,1fr))">
+          ${pitches}
         </div>
       </div>`;
   }
@@ -536,26 +588,35 @@ TD.app = (function () {
       </div>`;
   }
 
-  // Manually reassign players between Team A / Team B / bench (Out) — works
+  // Manually reassign players between teams (A/B[/C]) or bench (Out) — works
   // even after a draft is chosen (late arrivals, swaps, no-shows).
   function editDraftModal(gid, match, draft, byId, matchPlayers) {
+    const teamIds = draftTeamIds(draft);
+    const k = teamIds.length;
+    const options = []; // e.g. ["A","B","out"] or ["A","B","C","out"]
+    for (let i = 0; i < k; i++) options.push(teamLetter(i));
+    options.push("out");
+
+    const teamOfPlayer = (pid) => {
+      for (let i = 0; i < k; i++) if (teamIds[i].includes(pid)) return teamLetter(i);
+      return "out";
+    };
     const assign = {};
-    matchPlayers.forEach((p) => {
-      assign[p.id] = draft.teamAPlayerIds.includes(p.id)
-        ? "A"
-        : draft.teamBPlayerIds.includes(p.id)
-        ? "B"
-        : "out";
-    });
-    const activeCls = { A: "bg-primary text-white", B: "bg-indigo-600 text-white", out: "bg-slate-400 text-white" };
+    matchPlayers.forEach((p) => (assign[p.id] = teamOfPlayer(p.id)));
+
+    const activeCls = (v) =>
+      v === "out"
+        ? "bg-slate-400 text-white"
+        : ["bg-primary text-white", "bg-indigo-600 text-white", "bg-rose-600 text-white"][options.indexOf(v)] ||
+          "bg-primary text-white";
     const segBtn = (pid, v) =>
-      `<button data-assign="${pid}" data-val="${v}" class="px-3 py-1.5 ${assign[pid] === v ? activeCls[v] : "bg-white text-slate-500"}">${v === "out" ? "Out" : v}</button>`;
+      `<button data-assign="${pid}" data-val="${v}" class="px-2.5 py-1.5 ${assign[pid] === v ? activeCls(v) : "bg-white text-slate-500"}">${v === "out" ? "Out" : v}</button>`;
     const rows = matchPlayers
       .map(
         (p) => `
       <div class="flex items-center gap-2 py-1.5 border-b last:border-0">
-        <span class="flex-1 text-sm truncate">${posTag(p)} ${esc(p.name)}</span>
-        <div class="flex rounded-lg overflow-hidden border text-xs">${segBtn(p.id, "A")}${segBtn(p.id, "B")}${segBtn(p.id, "out")}</div>
+        <span class="flex-1 text-sm truncate min-w-0">${posTag(p)} ${esc(p.name)}</span>
+        <div class="flex rounded-lg overflow-hidden border text-xs">${options.map((v) => segBtn(p.id, v)).join("")}</div>
       </div>`
       )
       .join("");
@@ -574,18 +635,18 @@ TD.app = (function () {
 
     const host = $("modal-host");
     const refresh = () => {
-      const a = Object.values(assign).filter((v) => v === "A").length;
-      const b = Object.values(assign).filter((v) => v === "B").length;
-      $("ed-count").textContent = `Team A: ${a} · Team B: ${b}`;
+      $("ed-count").textContent = options
+        .filter((v) => v !== "out")
+        .map((v) => `${v}: ${Object.values(assign).filter((x) => x === v).length}`)
+        .join(" · ");
     };
     host.querySelectorAll("[data-assign]").forEach((btn) =>
       btn.addEventListener("click", () => {
         const pid = btn.dataset.assign;
         assign[pid] = btn.dataset.val;
-        // repaint this player's three buttons
         host.querySelectorAll(`[data-assign="${pid}"]`).forEach((b2) => {
           const v = b2.dataset.val;
-          b2.className = `px-3 py-1.5 ${assign[pid] === v ? activeCls[v] : "bg-white text-slate-500"}`;
+          b2.className = `px-2.5 py-1.5 ${assign[pid] === v ? activeCls(v) : "bg-white text-slate-500"}`;
         });
         refresh();
       })
@@ -593,22 +654,22 @@ TD.app = (function () {
     refresh();
 
     $("ed-save").onclick = async () => {
-      const teamAPlayerIds = matchPlayers.filter((p) => assign[p.id] === "A").map((p) => p.id);
-      const teamBPlayerIds = matchPlayers.filter((p) => assign[p.id] === "B").map((p) => p.id);
-      if (!teamAPlayerIds.length || !teamBPlayerIds.length) return toast("Each team needs at least 1 player");
+      const newTeams = [];
+      for (let i = 0; i < k; i++)
+        newTeams.push(matchPlayers.filter((p) => assign[p.id] === teamLetter(i)).map((p) => p.id));
+      if (newTeams.some((t) => !t.length)) return toast("Each team needs at least 1 player");
       const stats = (ids) => ids.map((id) => byId[id]).filter(Boolean);
-      const score = TD.algo.scoreSplit(
-        stats(teamAPlayerIds),
-        stats(teamBPlayerIds),
-        draft.weights || {},
-        draft.balanceMode
-      );
-      await store.updateDraft(gid, match.id, draft.id, {
-        teamAPlayerIds,
-        teamBPlayerIds,
+      const score = TD.algo.scoreTeams(newTeams.map(stats), draft.weights || {}, draft.balanceMode);
+      const patch = {
+        teams: newTeams,
         algorithm: "manual",
         balanceScore: Math.round(score * 10000) / 10000,
-      });
+      };
+      if (k === 2) {
+        patch.teamAPlayerIds = newTeams[0];
+        patch.teamBPlayerIds = newTeams[1];
+      }
+      await store.updateDraft(gid, match.id, draft.id, patch);
       closeModal();
       render();
     };
@@ -627,21 +688,29 @@ TD.app = (function () {
     modal(`
       <div class="p-5">
         <h2 class="text-lg font-bold mb-1">Generate draft</h2>
-        <p class="text-xs text-slate-500 mb-4">${n} players → two teams. Weights ${cfg.WEIGHT_MIN}–${cfg.WEIGHT_MAX}.</p>
+        <p class="text-xs text-slate-500 mb-3"><span id="gd-sub">${n} players → two teams.</span> Weights ${cfg.WEIGHT_MIN}–${cfg.WEIGHT_MAX}.</p>
+
+        <div class="text-sm font-medium mb-2">Number of teams</div>
+        <div class="flex rounded-lg overflow-hidden border mb-4">
+          <button type="button" data-teams="2" class="flex-1 py-2 text-sm font-semibold bg-primary text-white">2 teams</button>
+          <button type="button" data-teams="3" class="flex-1 py-2 text-sm font-semibold bg-white text-slate-500">3 teams</button>
+        </div>
+
         ${wInput("w-pos", "Positioning")}
         ${wInput("w-att", "Attack")}
         ${wInput("w-def", "Defense")}
         ${wInput("w-sta", "Stamina")}
-        <div class="mt-4">
+        <div class="mt-4" id="algo-section">
           <div class="text-sm font-medium mb-2">Algorithm</div>
-          <label class="flex items-center gap-2 p-2 border rounded-lg mb-2 ${bruteOk ? "" : "opacity-40"}">
+          <label id="algo-brute-lbl" class="flex items-center gap-2 p-2 border rounded-lg mb-2 ${bruteOk ? "" : "opacity-40"}">
             <input type="radio" name="algo" value="brute" ${bruteOk ? "checked" : "disabled"} />
-            <span class="flex-1 text-sm">Brute force <span class="text-slate-400">— optimal, ${bruteOk ? combos.toLocaleString() + " splits" : "too many players"}</span></span>
+            <span class="flex-1 text-sm">Brute force <span class="text-slate-400" id="brute-note">— optimal, ${bruteOk ? combos.toLocaleString() + " splits" : "too many players"}</span></span>
           </label>
           <label class="flex items-center gap-2 p-2 border rounded-lg">
             <input type="radio" name="algo" value="genetic" ${bruteOk ? "" : "checked"} />
             <span class="flex-1 text-sm">Genetic <span class="text-slate-400">— fast, approximate</span></span>
           </label>
+          <p id="algo-note" class="text-xs text-slate-400 mt-1 hidden">3-team drafts use the genetic algorithm.</p>
         </div>
         <label class="flex items-center gap-2 p-2 border rounded-lg mt-3">
           <input type="checkbox" id="even-balance" class="w-5 h-5" checked />
@@ -653,6 +722,29 @@ TD.app = (function () {
           <button id="run-draft" class="bg-primary text-white rounded-lg px-4 py-2 font-semibold">Generate</button>
         </div>
       </div>`);
+
+    let numTeams = 2;
+    const host = $("modal-host");
+    host.querySelectorAll("[data-teams]").forEach((b) =>
+      b.addEventListener("click", () => {
+        numTeams = +b.dataset.teams;
+        host.querySelectorAll("[data-teams]").forEach((x) => {
+          const on = +x.dataset.teams === numTeams;
+          x.className = `flex-1 py-2 text-sm font-semibold ${on ? "bg-primary text-white" : "bg-white text-slate-500"}`;
+        });
+        const perTeam = Math.floor(n / numTeams);
+        $("gd-sub").textContent = `${n} players → ${numTeams} teams (~${perTeam} each).`;
+        // 3 teams => genetic only
+        const three = numTeams === 3;
+        $("algo-brute-lbl").classList.toggle("opacity-40", three || !bruteOk);
+        const bruteRadio = host.querySelector('input[name=algo][value=brute]');
+        const genRadio = host.querySelector('input[name=algo][value=genetic]');
+        bruteRadio.disabled = three || !bruteOk;
+        if (three || !bruteOk) genRadio.checked = true;
+        $("algo-note").classList.toggle("hidden", !three);
+      })
+    );
+
     $("run-draft").onclick = async () => {
       const weights = {
         positioning: +$("w-pos").value,
@@ -661,29 +753,46 @@ TD.app = (function () {
         stamina: +$("w-sta").value,
       };
       if (Object.values(weights).every((v) => !v)) return toast("Set at least one weight above 0");
-      const algorithm = document.querySelector("input[name=algo]:checked").value;
+      if (n < numTeams) return toast(`Need at least ${numTeams} players`);
+      const algorithm = numTeams === 3 ? "genetic" : document.querySelector("input[name=algo]:checked").value;
       const mode = $("even-balance").checked ? "squared" : "linear";
       const btn = $("run-draft");
       btn.textContent = "Working…";
       btn.disabled = true;
-      // let the UI paint before a heavy sync computation
-      await new Promise((r) => setTimeout(r, 30));
+      await new Promise((r) => setTimeout(r, 30)); // let the UI paint
       // Always shuffle first so tie-breaking (esp. brute force) varies each run.
       const players = TD.algo.shuffle(matchPlayers).map((p) => ({
         id: p.id, positioning: p.positioning, attack: p.attack, defense: p.defense, stamina: p.stamina,
       }));
-      const res =
-        algorithm === "brute"
-          ? TD.algo.brute(players, weights, mode)
-          : TD.algo.genetic(players, weights, mode);
-      await store.createDraft(gid, match.id, {
-        teamAPlayerIds: res.teamA.map((p) => p.id),
-        teamBPlayerIds: res.teamB.map((p) => p.id),
+
+      let teamsIds, score;
+      if (numTeams === 2 && algorithm === "brute") {
+        const res = TD.algo.brute(players, weights, mode);
+        teamsIds = [res.teamA.map((p) => p.id), res.teamB.map((p) => p.id)];
+        score = res.score;
+      } else if (numTeams === 2) {
+        const res = TD.algo.genetic(players, weights, mode);
+        teamsIds = [res.teamA.map((p) => p.id), res.teamB.map((p) => p.id)];
+        score = res.score;
+      } else {
+        const res = TD.algo.geneticMulti(players, weights, mode, numTeams);
+        teamsIds = res.teams.map((t) => t.map((p) => p.id));
+        score = res.score;
+      }
+
+      const payload = {
+        teams: teamsIds,
+        numTeams,
         weights,
         algorithm,
         balanceMode: mode,
-        balanceScore: Math.round(res.score * 10000) / 10000,
-      });
+        balanceScore: Math.round(score * 10000) / 10000,
+      };
+      if (numTeams === 2) {
+        payload.teamAPlayerIds = teamsIds[0]; // legacy compat
+        payload.teamBPlayerIds = teamsIds[1];
+      }
+      await store.createDraft(gid, match.id, payload);
       closeModal();
       render();
     };
@@ -697,10 +806,10 @@ TD.app = (function () {
     const matches = await store.listMatches(group.id);
     const enriched = [];
     for (const m of matches) {
-      if (!m.chosenDraftId || !m.result) continue;
+      if (!m.chosenDraftId || !readGames(m)) continue;
       const drafts = await store.listDrafts(group.id, m.id);
       const draft = drafts.find((d) => d.id === m.chosenDraftId);
-      if (draft) enriched.push({ ...m, draft });
+      if (draft) enriched.push({ ...m, draft, games: readGames(m) });
     }
     return { byId, enriched };
   }

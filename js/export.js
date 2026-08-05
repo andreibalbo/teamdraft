@@ -1,8 +1,9 @@
-/* TeamDraft v2 — exports
- * - buildCsv       : tidy, one row per player per chosen match (human-friendly)
- * - buildMatchCsv  : one row per chosen match with team-total features (ML)
- * - buildMatchJson : nested JSON per chosen match with full vectors (ML)
- * All only include CHOSEN matches that have a recorded result.
+/* TeamDraft v2 — exports (supports 2 or 3 teams)
+ * - buildCsv       : one row per player per GAME (human-friendly, tidy)
+ * - buildMatchCsv  : one row per GAME (pairing) with team-total features (ML)
+ * - buildMatchJson : nested JSON per match (teams + games) for ML
+ * A 2-team match has 1 game; a 3-team match has 3 games (A×B, A×C, B×C).
+ * Each enriched match carries: { ...match, draft, games:[{a,b,ga,gb}] }.
  */
 window.TD = window.TD || {};
 
@@ -14,120 +15,121 @@ TD.exporter = (function () {
     return /[",\n]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s;
   };
   const fmtDate = (ts) => (ts ? new Date(ts).toISOString().slice(0, 10) : "");
+  const teamLetter = (i) => String.fromCharCode(65 + i);
+  const teamIdsOf = (d) =>
+    d.teams && d.teams.length ? d.teams : [d.teamAPlayerIds || [], d.teamBPlayerIds || []];
 
   function outcome(mine, theirs) {
     if (mine > theirs) return "win";
     if (mine < theirs) return "loss";
     return "draw";
   }
-
-  const teamTotals = (players) => {
+  const totals = (players) => {
     const t = { positioning: 0, attack: 0, defense: 0, stamina: 0 };
     for (const p of players) for (const k of STATS) t[k] += Number(p[k]) || 0;
     return t;
   };
+  const eligible = (matches) => matches.filter((m) => m.draft && m.games && m.games.length);
 
-  const eligible = (matches) =>
-    matches.filter((m) => m.chosenDraftId && m.result && m.draft);
+  // Resolve each team's player objects for a match's chosen draft.
+  const resolveTeams = (m, byId) =>
+    teamIdsOf(m.draft).map((ids) => ids.map((id) => byId[id]).filter(Boolean));
 
-  /* -------------------- tidy: one row per player per match --------------- */
+  /* -------------------- tidy: one row per player per game ---------------- */
   const TIDY_HEADERS = [
-    "match_date", "match_id", "balance_score", "algorithm", "balance_mode",
-    "team", "team_goals", "opponent_goals", "outcome",
+    "match_date", "match_id", "num_teams", "game", "balance_score", "algorithm", "balance_mode",
+    "team", "team_goals", "opponent", "opponent_goals", "outcome",
     "player_name", "positioning", "attack", "defense", "stamina",
   ];
-  function buildCsv(matches, playersById) {
+  function buildCsv(matches, byId) {
     const rows = [TIDY_HEADERS.join(",")];
     for (const m of eligible(matches)) {
       const d = m.draft;
-      const gA = Number(m.result.teamAGoals);
-      const gB = Number(m.result.teamBGoals);
-      const emit = (ids, team, goals, opp) => {
-        for (const id of ids) {
-          const p = playersById[id];
-          if (!p) continue;
-          rows.push(
-            [
-              fmtDate(m.datetime), m.id, d.balanceScore ?? "", d.algorithm || "",
-              d.balanceMode || "linear", team, goals, opp, outcome(goals, opp),
-              p.name, p.positioning, p.attack, p.defense, p.stamina,
-            ].map(esc).join(",")
-          );
-        }
-      };
-      emit(d.teamAPlayerIds, "A", gA, gB);
-      emit(d.teamBPlayerIds, "B", gB, gA);
+      const teams = resolveTeams(m, byId);
+      const nTeams = teams.length;
+      for (const g of m.games) {
+        const gameLabel = `${teamLetter(g.a)}_vs_${teamLetter(g.b)}`;
+        const emit = (idx, goals, opp, oppIdx) => {
+          for (const p of teams[idx]) {
+            rows.push(
+              [
+                fmtDate(m.datetime), m.id, nTeams, gameLabel, d.balanceScore ?? "",
+                d.algorithm || "", d.balanceMode || "linear",
+                teamLetter(idx), goals, teamLetter(oppIdx), opp, outcome(goals, opp),
+                p.name, p.positioning, p.attack, p.defense, p.stamina,
+              ].map(esc).join(",")
+            );
+          }
+        };
+        emit(g.a, g.ga, g.gb, g.b);
+        emit(g.b, g.gb, g.ga, g.a);
+      }
     }
     return rows.join("\n");
   }
 
-  /* ---------------- ML: one row per match with team features ------------- */
+  /* ---------------- ML: one row per game with team features -------------- */
   const MATCH_HEADERS = [
-    "match_date", "match_id", "algorithm", "balance_mode", "balance_score",
-    "teamA_size", "teamB_size", "teamA_players", "teamB_players",
-    "A_pos", "A_att", "A_def", "A_sta",
-    "B_pos", "B_att", "B_def", "B_sta",
+    "match_date", "match_id", "num_teams", "game", "algorithm", "balance_mode", "balance_score",
+    "home_team", "away_team", "home_size", "away_size",
+    "home_pos", "home_att", "home_def", "home_sta",
+    "away_pos", "away_att", "away_def", "away_sta",
     "diff_pos", "diff_att", "diff_def", "diff_sta",
-    "teamA_goals", "teamB_goals", "margin", "winner",
+    "home_goals", "away_goals", "margin", "winner",
   ];
-  function matchRow(m, playersById) {
-    const d = m.draft;
-    const teamA = d.teamAPlayerIds.map((id) => playersById[id]).filter(Boolean);
-    const teamB = d.teamBPlayerIds.map((id) => playersById[id]).filter(Boolean);
-    const A = teamTotals(teamA);
-    const B = teamTotals(teamB);
-    const gA = Number(m.result.teamAGoals);
-    const gB = Number(m.result.teamBGoals);
-    const winner = gA > gB ? "A" : gB > gA ? "B" : "draw";
-    return {
-      match_date: fmtDate(m.datetime), match_id: m.id,
-      algorithm: d.algorithm || "", balance_mode: d.balanceMode || "linear",
-      balance_score: d.balanceScore ?? "",
-      teamA_size: teamA.length, teamB_size: teamB.length,
-      teamA_players: teamA.map((p) => p.name).join("; "),
-      teamB_players: teamB.map((p) => p.name).join("; "),
-      A_pos: A.positioning, A_att: A.attack, A_def: A.defense, A_sta: A.stamina,
-      B_pos: B.positioning, B_att: B.attack, B_def: B.defense, B_sta: B.stamina,
-      diff_pos: Math.abs(A.positioning - B.positioning),
-      diff_att: Math.abs(A.attack - B.attack),
-      diff_def: Math.abs(A.defense - B.defense),
-      diff_sta: Math.abs(A.stamina - B.stamina),
-      teamA_goals: gA, teamB_goals: gB, margin: Math.abs(gA - gB), winner,
-    };
-  }
-  function buildMatchCsv(matches, playersById) {
+  function buildMatchCsv(matches, byId) {
     const rows = [MATCH_HEADERS.join(",")];
     for (const m of eligible(matches)) {
-      const r = matchRow(m, playersById);
-      rows.push(MATCH_HEADERS.map((h) => esc(r[h])).join(","));
+      const d = m.draft;
+      const teams = resolveTeams(m, byId);
+      for (const g of m.games) {
+        const H = totals(teams[g.a]);
+        const A = totals(teams[g.b]);
+        const winner = g.ga > g.gb ? teamLetter(g.a) : g.gb > g.ga ? teamLetter(g.b) : "draw";
+        const r = {
+          match_date: fmtDate(m.datetime), match_id: m.id, num_teams: teams.length,
+          game: `${teamLetter(g.a)}_vs_${teamLetter(g.b)}`,
+          algorithm: d.algorithm || "", balance_mode: d.balanceMode || "linear",
+          balance_score: d.balanceScore ?? "",
+          home_team: teamLetter(g.a), away_team: teamLetter(g.b),
+          home_size: teams[g.a].length, away_size: teams[g.b].length,
+          home_pos: H.positioning, home_att: H.attack, home_def: H.defense, home_sta: H.stamina,
+          away_pos: A.positioning, away_att: A.attack, away_def: A.defense, away_sta: A.stamina,
+          diff_pos: Math.abs(H.positioning - A.positioning),
+          diff_att: Math.abs(H.attack - A.attack),
+          diff_def: Math.abs(H.defense - A.defense),
+          diff_sta: Math.abs(H.stamina - A.stamina),
+          home_goals: g.ga, away_goals: g.gb, margin: Math.abs(g.ga - g.gb), winner,
+        };
+        rows.push(MATCH_HEADERS.map((h) => esc(r[h])).join(","));
+      }
     }
     return rows.join("\n");
   }
 
-  /* ---------------- ML: nested JSON with full player vectors ------------- */
-  function buildMatchJson(matches, playersById) {
+  /* ---------------- ML: nested JSON (teams + games) --------------------- */
+  function buildMatchJson(matches, byId) {
     const vec = (p) => ({
       name: p.name, positioning: p.positioning, attack: p.attack,
       defense: p.defense, stamina: p.stamina,
     });
     const out = eligible(matches).map((m) => {
       const d = m.draft;
-      const teamA = d.teamAPlayerIds.map((id) => playersById[id]).filter(Boolean);
-      const teamB = d.teamBPlayerIds.map((id) => playersById[id]).filter(Boolean);
-      const gA = Number(m.result.teamAGoals);
-      const gB = Number(m.result.teamBGoals);
+      const teams = resolveTeams(m, byId);
       return {
         match_id: m.id,
         date: fmtDate(m.datetime),
+        num_teams: teams.length,
         algorithm: d.algorithm || "",
         balance_mode: d.balanceMode || "linear",
         balance_score: d.balanceScore ?? null,
         weights: d.weights || null,
-        teamA: teamA.map(vec),
-        teamB: teamB.map(vec),
-        teamA_totals: teamTotals(teamA),
-        teamB_totals: teamTotals(teamB),
-        result: { teamA_goals: gA, teamB_goals: gB, margin: Math.abs(gA - gB), winner: gA > gB ? "A" : gB > gA ? "B" : "draw" },
+        teams: teams.map((t, i) => ({ team: teamLetter(i), players: t.map(vec), totals: totals(t) })),
+        games: m.games.map((g) => ({
+          home: teamLetter(g.a), away: teamLetter(g.b),
+          home_goals: g.ga, away_goals: g.gb, margin: Math.abs(g.ga - g.gb),
+          winner: g.ga > g.gb ? teamLetter(g.a) : g.gb > g.ga ? teamLetter(g.b) : "draw",
+        })),
       };
     });
     return JSON.stringify(out, null, 2);
