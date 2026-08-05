@@ -469,20 +469,23 @@ TD.app = (function () {
     const chosen = match.chosenDraftId === d.id;
     const teamA = d.teamAPlayerIds.map((id) => byId[id]).filter(Boolean);
     const teamB = d.teamBPlayerIds.map((id) => byId[id]).filter(Boolean);
-    const sA = TD.algo.teamStats(teamA);
-    const sB = TD.algo.teamStats(teamB);
+    const uneven = teamA.length !== teamB.length;
     const algoLabel =
       d.algorithm === "brute" ? "Brute force" : d.algorithm === "manual" ? "Manual" : "Genetic";
 
     const teamCol = (name, team) => `
       <div class="flex-1">
-        <div class="font-bold text-sm mb-1">${name}</div>
+        <div class="font-bold text-sm mb-1">${name} <span class="text-slate-400 font-normal">(${team.length})</span></div>
         ${team
           .map((p) => `<div class="flex items-center gap-1 text-sm py-0.5">${posTag(p)}<span class="truncate">${esc(p.name)}</span></div>`)
           .join("")}
       </div>`;
-    const statsRow = (s) =>
-      `POS ${s.positioning} · ATT ${s.attack} · DEF ${s.defense} · STA ${s.stamina}`;
+    // Per-player averages (what the balancer actually equalises).
+    const avgRow = (team) => {
+      const a = TD.algo.teamAverages(team);
+      const r = (x) => Math.round(x);
+      return `avg POS ${r(a.positioning)} · ATT ${r(a.attack)} · DEF ${r(a.defense)} · STA ${r(a.stamina)}`;
+    };
 
     return `
       <div class="bg-white rounded-xl shadow-sm p-4 ${chosen ? "ring-2 ring-emerald-500" : ""}">
@@ -500,8 +503,9 @@ TD.app = (function () {
           ${teamCol("Team B", teamB)}
         </div>
         <div class="grid grid-cols-2 gap-3 mt-2 text-[11px] text-slate-500">
-          <div>${statsRow(sA)}</div><div>${statsRow(sB)}</div>
+          <div>${avgRow(teamA)}</div><div>${avgRow(teamB)}</div>
         </div>
+        ${uneven ? `<div class="text-[11px] text-sky-600 mt-1">Uneven teams — balanced by per-player average (the ${Math.max(teamA.length, teamB.length)}-player side rotates a substitute).</div>` : ""}
         <div class="flex gap-2 mt-3">
           <button data-lineup="${d.id}" class="text-sm border rounded-lg px-3 py-1.5 flex-1">⚽ Lineup</button>
           <button data-editdraft="${d.id}" class="text-sm border rounded-lg px-3 py-1.5 flex-1">✎ Edit teams</button>
